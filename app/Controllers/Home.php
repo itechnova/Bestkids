@@ -2,8 +2,9 @@
 
 namespace App\Controllers;
 
-class Home extends BaseController
+class Roles extends BaseController
 {
+    public static $NAME = 'roles';
     public function index(): string
     {
         return view('welcome_message');
