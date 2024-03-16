@@ -111,6 +111,10 @@ abstract class BaseController extends Controller
 
         $this->breadcrumbs = [];
         $this->values = [];
+        if(!IS_NULL($request)){
+            $this->setValues($request->getPost());
+        }
+        
         $this->addBreadcrumb($this->titleWebsite, site_url());
         $this->addBreadcrumb($this->title, site_url($this->slug.'s'));
         // Do Not Edit This Line
@@ -128,13 +132,28 @@ abstract class BaseController extends Controller
         $this->content = (Object) array('title'=>$title, 'content'=>$content);
     }
     
-
     protected function addBreadcrumb($title, $slug="javascript:void(0)"){
         $this->breadcrumbs[] = (Object) array('title'=>$title, 'slug'=>$slug);
     }
 
     protected function setValues($values = []){
         $this->values = $values;
+    }
+
+    protected function getValues(){
+        if(!$this->getModel()){
+            return false;
+        }
+
+        return $this->getModel()->setValues($this->values);
+    }
+
+    protected function getID(){
+        if(!$this->getModel()){
+            return false;
+        }
+
+        return $this->getModel()->getID($this->values);
     }
 
     protected function View($View, $Params=[])
@@ -148,14 +167,94 @@ abstract class BaseController extends Controller
                 'breadcrumbs' => $this->breadcrumbs,
                 'content' => $this->content,
                 'model' => $this->getModel(),
-                'values' => $this->values
+                'values' => $this->values,
+                'action' => $this->slug."/saved",
+                'validator'=>$this->validator
             ],
             $Params
         ));
 
     }
 
+    protected function isNew(){
+        if(!$this->getModel()){
+            return true;
+        }
+
+        return !$this->getModel()->isDeleted($this->values);
+    }
+
     protected function getModel(){
         return false;
+    }
+
+    protected function viewContent(): Object
+    {
+        return (Object) array();
+    }
+
+    public function index(): string
+    {
+        $this->titlePage = $this->viewContent()->list->titlePage;
+        $this->description = $this->viewContent()->list->description;
+        $this->setContent($this->viewContent()->list->title, $this->viewContent()->list->content);
+        $this->addBreadcrumb($this->titlePage);
+        return $this->View($this->viewList);
+    }
+
+    public function new(): string
+    {
+        $this->titlePage = $this->viewContent()->new->titlePage;
+        $this->description = $this->viewContent()->new->description;
+        $this->setContent($this->viewContent()->new->title, $this->viewContent()->new->content);
+        $this->addBreadcrumb($this->titlePage);
+        return $this->View($this->viewEdit);
+    }
+
+    public function edit($id): string
+    {
+        $this->titlePage = $this->viewContent()->edit->titlePage;
+        $this->description = $this->viewContent()->edit->description;
+        $this->setContent($this->viewContent()->edit->title, $this->viewContent()->edit->content);
+        $this->addBreadcrumb($this->titlePage);
+
+        $Model = $this->getModel()->Exists($id);
+        
+        if(strlen(trim($id))===0 || is_null($Model)){
+            return redirect()->to($this->slug.'s')->with('warning', '¡Este registro no existe!');
+        }
+
+        $this->setValues($Model);
+
+        return $this->View($this->viewEdit);
+    }
+
+    public function saved(){
+        //var_dump($this->request->getPost());
+        if($this->validate($this->getModel()->getValidation())){
+            $data = ($this->getValues());
+
+            $Model = $this->getModel();
+            $Saved = ($this->isNew() && !$this->getID()) ? $Model->insert($data) : $Model->update($this->getID(), $data);
+
+            if($Saved){
+                $ModelId = $this->getID();
+                if($this->isNew() && !$this->getID()){
+                    $ModelId = $Model->getInsertID();
+                }
+                return redirect()->to($this->slug.'/edit/'.$ModelId)->with('success', _('¡Los datos se han guardado correctamente!'));
+            }
+
+        }
+        
+        $this->titlePage =  $this->isNew() ? $this->viewContent()->new->titlePage: $this->viewContent()->edit->titlePage;
+        $this->description =  $this->isNew() ? $this->viewContent()->new->description: $this->viewContent()->edit->description;
+        if($this->isNew()){
+            $this->setContent($this->viewContent()->new->title, $this->viewContent()->new->content);
+        }else{
+            $this->setContent($this->viewContent()->edit->title, $this->viewContent()->edit->content);
+        }
+        $this->addBreadcrumb($this->titlePage);
+        return $this->View($this->viewEdit);
     }
 }

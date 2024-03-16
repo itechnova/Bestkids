@@ -19,7 +19,7 @@ class RoleModel extends Model
     protected bool $allowEmptyInserts = false;
 
     // Dates
-    protected $useTimestamps = false;
+    protected $useTimestamps = true;
     protected $dateFormat    = 'datetime';
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
@@ -41,6 +41,62 @@ class RoleModel extends Model
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
+
+    public function Exists($Id){
+        return $this->where($this->primaryKey, $Id)->first();
+
+    }
+
+    public function getID($values){
+        if(isset($values[$this->primaryKey])){
+            if($values[$this->primaryKey] !== ""){
+                return $values[$this->primaryKey];
+            }
+        }
+        return false;
+    }
+
+    public function setValues($values){
+        $_VALUES_ = [];
+        if(isset($values[$this->primaryKey])){
+            $_VALUES_[$this->primaryKey] = $values[$this->primaryKey];
+        }
+
+        foreach ($this->allowedFields as $field) {
+            # code...
+            if(isset($values[$field])){
+                if($field === 'enabled'){
+                    $_VALUES_[$field] = $values[$field] === "on" ? 1: 0;
+                }else{
+                    $_VALUES_[$field] = $values[$field];
+                }
+            }
+        }
+
+        return $_VALUES_;
+    }
+
+    public function getValidation(){
+        return [
+            'title'=>[
+                'rules'=>'required|min_length[5]|max_length[24]',
+                'errors'=>[
+                    'required' => _('Título es requerido.'),
+                    'min_length' => _('Título debe tener al menos 5 caracteres de longitud.'),
+                    'max_length' => _('Título no debe tener más de 24 caracteres de longitud.')
+                ]
+            ],
+            'level' => [
+                'rules' => 'required|numeric|greater_than_equal_to[1]|less_than_equal_to[100]',
+                'errors' => [
+                    'required' => _('El nivel es requerido.'),
+                    'numeric' => _('El nivel debe ser un número.'),
+                    'greater_than_equal_to' => _('El nivel debe ser igual o mayor que 1.'),
+                    'less_than_equal_to' => _('El nivel debe ser igual o menor que 100.')
+                ]
+            ]
+        ];
+    }
 
     public function getFields(){
         $fields = [];

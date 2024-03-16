@@ -6,20 +6,51 @@ if (!function_exists('_')) {
     }
 }
 
-if (!function_exists('form_html')) {
-    function form_html($context) {
-        ob_start(); ?>
-        <form class="form">
-            <?=$context;?>
-        </form>
-        <?php return ob_get_clean();
+if (!function_exists('display_error')) {
+    function display_error($validation, $field){
+        return ($validation->hasError($field)) ? $validation->getError($field) : false;
     }
 }
 
 if (!function_exists('form_html')) {
-    function form_html($context) {
+    function form_html($form) {
+
+        $context = "";
+        if(property_exists($form, 'context')){
+            $context = $form->context;
+        }
+        
+        $method = "";
+        if(property_exists($form, 'method')){
+            $method =  " method=\"".$form->method."\"";
+        }
+
+        $enctype = "";
+        if(property_exists($form, 'enctype')){
+            $enctype = " enctype=\"multipart/form-data\"";
+        }
+
+        $action = "";
+        if(property_exists($form, 'action')){
+            $action = " action=\"".site_url($form->action)."\"";
+        }
+
+        $class = "form";
+        if(property_exists($form, 'class')){
+            $class = $form->class;
+        }
+
+        $validator = NULL;
+        if(property_exists($form, 'validator')){
+            $validator = $form->validator;
+
+            if(!IS_NULL($validator)){
+                $class .= " was-validated";
+            }
+        }
+
         ob_start(); ?>
-        <form class="form">
+        <form <?=$method;?><?=$action;?><?=$action;?> class="<?=$class?>" novalidate>
             <?=csrf_field();?>
             <?=$context;?>
         </form>
@@ -28,7 +59,7 @@ if (!function_exists('form_html')) {
 }
 
 if (!function_exists('field_html')) {
-    function field_html($field, $values) {
+    function field_html($field, $values, $validator) {
 
         $name = "";
         if(property_exists($field, 'name')){
@@ -60,6 +91,18 @@ if (!function_exists('field_html')) {
             if(property_exists($field, 'helper')){
                 ob_start(); ?><div class="valid-feedback"><?=_($field->helper);?></div><?php
                 $helper = ob_get_clean();
+            }
+
+            if(!IS_NULL($validator)){
+                if(IS_OBJECT($validator)){
+                    $ErrText = display_error($validator, $name);
+                    if($ErrText){
+                        $helper = "";
+                        $class .= " error";                        
+                        ob_start(); ?><div class="invalid-feedback" style="display: block;"><?=$ErrText;?></div><?php
+                        $helper = ob_get_clean();                        
+                    }
+                }
             }
 
             $placeholder = "";
