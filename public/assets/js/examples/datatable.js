@@ -1,7 +1,7 @@
 'use strict';
 $(document).ready(function () {
 
-    $('#example1').DataTable({
+    $('.Datatable').DataTable({
         responsive: true
     });
 

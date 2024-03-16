@@ -15,6 +15,9 @@
     <!-- App styles -->
     <link rel="stylesheet" href="<?=base_url('public/assets/css/app.min.css');?>" type="text/css">
 
+    <!-- DataTable -->
+    <link rel="stylesheet" href="<?=base_url('public/vendors/dataTable/dataTables.min.css');?>" type="text/css">
+
     <style>
 
         .error .form-control {
@@ -72,6 +75,12 @@
 <!-- begin::global scripts -->
 <script src="<?=base_url('public/vendors/bundle.js');?>"></script>
 <!-- end::global scripts -->
+
+<!-- DataTable -->
+<script src="<?=base_url('public/vendors/dataTable/jquery.dataTables.min.js');?>"></script>
+<script src="<?=base_url('public/vendors/dataTable/dataTables.bootstrap4.min.js');?>"></script>
+<script src="<?=base_url('public/vendors/dataTable/dataTables.responsive.min.js');?>"></script>
+<script src="<?=base_url('public/assets/js/examples/datatable.js');?>"></script>
 
 <!-- begin::custom scripts -->
 <script src="<?=base_url('public/assets/js/custom.js');?>"></script>

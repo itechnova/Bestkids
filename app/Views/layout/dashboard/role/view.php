@@ -12,16 +12,16 @@
                         if($model){
                             ob_start();
                             foreach ($model->getFields() as $field) {
-                                echo field_html($field, $values, $validator);
+                                echo field_view_html($field, $values, $validator);
                             }
 
                             echo br_html();
                             echo br_html();
-                            echo form_button_html($model, $values, $action);
+                            echo form_button_view_html($model, $values, $action);
                             echo form_html(((Object) array(
                                 'method' => "POST",
                                 'enctype'=> true,
-                                'action'=> $action."/saved",
+                                'action'=> $action,
                                 'validator'=> $validator,
                                 'context' => ob_get_clean()
                             )));

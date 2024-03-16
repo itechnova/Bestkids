@@ -42,6 +42,10 @@ class RoleModel extends Model
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
 
+    public function description() {
+        return 'title';
+    }
+
     public function Exists($Id){
         return $this->where($this->primaryKey, $Id)->first();
 

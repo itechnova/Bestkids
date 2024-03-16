@@ -9,23 +9,11 @@
                     <p><?=_($content->content);?></p>
 
                     <?php 
-                        if($model){
-                            ob_start();
-                            foreach ($model->getFields() as $field) {
-                                echo field_html($field, $values, $validator);
-                            }
-
-                            echo br_html();
-                            echo br_html();
-                            echo form_button_html($model->isDeleted($values));
-                            echo form_html(((Object) array(
-                                'method' => "POST",
-                                'enctype'=> true,
-                                'action'=> $action,
-                                'validator'=> $validator,
-                                'context' => ob_get_clean()
-                            )));
-                        }
+                        echo table_html((Object) array(
+                            'columns' => $columns,
+                            'datas' => $all,
+                            'td' => $td
+                        ));
                     ?>
                 </section>
             </div>

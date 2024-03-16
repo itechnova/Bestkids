@@ -156,6 +156,10 @@ abstract class BaseController extends Controller
         return $this->getModel()->getID($this->values);
     }
 
+    protected function FILTER(){
+        return [];
+    }
+
     protected function View($View, $Params=[])
     {
         return view('layout/'.$this->layout.$this->layoutView, array_merge(
@@ -168,8 +172,13 @@ abstract class BaseController extends Controller
                 'content' => $this->content,
                 'model' => $this->getModel(),
                 'values' => $this->values,
-                'action' => $this->slug."/saved",
-                'validator'=>$this->validator
+                'action' => $this->slug,
+                'validator'=>$this->validator,
+                'columns'=>$this->getColumns(),
+                'all'=>$this->FILTER(),
+                'td'=>function($tr, $td, $column){
+                    return $this->td($tr, $td, $column);
+                }
             ],
             $Params
         ));
@@ -209,6 +218,27 @@ abstract class BaseController extends Controller
         $this->setContent($this->viewContent()->new->title, $this->viewContent()->new->content);
         $this->addBreadcrumb($this->titlePage);
         return $this->View($this->viewEdit);
+    }
+
+    public function details($id): string
+    {
+
+        $Model = $this->getModel()->Exists($id);
+        
+        if(strlen(trim($id))===0 || is_null($Model)){
+            return redirect()->to($this->slug.'s')->with('warning', '¡Este registro no existe!');
+        }
+
+        $description = isset($Model[$this->getModel()->description()]) ? $Model[$this->getModel()->description()]: "";
+
+        $this->titlePage = $this->viewContent()->view->titlePage.$description;
+        $this->description = $this->viewContent()->view->description.$description;
+        $this->setContent($this->viewContent()->view->title.$description, $this->viewContent()->view->content.$description);
+        $this->addBreadcrumb($this->titlePage);
+
+        $this->setValues($Model);
+
+        return $this->View($this->viewView);
     }
 
     public function edit($id): string
@@ -256,5 +286,9 @@ abstract class BaseController extends Controller
         }
         $this->addBreadcrumb($this->titlePage);
         return $this->View($this->viewEdit);
+    }
+
+    protected function td($tr, $td, $column){
+        return $td;
     }
 }
