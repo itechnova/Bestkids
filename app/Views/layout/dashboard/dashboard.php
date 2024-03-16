@@ -28,6 +28,16 @@
             background-position: center right calc(.375em + .1875rem) !important;
             background-size: calc(.75em + .375rem) calc(.75em + .375rem) !important;
         }
+        .dataTables_wrapper .dataTables_length > label {
+            display: flex;
+            align-content: center;
+            align-items: center;
+        }
+
+        .dataTables_wrapper .dataTables_length > label > select {
+            max-width: 100px;
+            margin-right: 7px;
+        }
     </style>
 </head>
 <body>
@@ -91,12 +101,28 @@
 <script src="<?=base_url('public/vendors/dataTable/jquery.dataTables.min.js');?>"></script>
 <script src="<?=base_url('public/vendors/dataTable/dataTables.bootstrap4.min.js');?>"></script>
 <script src="<?=base_url('public/vendors/dataTable/dataTables.responsive.min.js');?>"></script>
-<script src="<?=base_url('public/assets/js/examples/datatable.js');?>"></script>
+<script src="<?=base_url('public/assets/js/examples/datatable.js?ver=1.0.2');?>"></script>
 
 <!-- begin::custom scripts -->
 <script src="<?=base_url('public/assets/js/custom.js');?>"></script>
 <script src="<?=base_url('public/assets/js/app.min.js');?>"></script>
 <!-- end::custom scripts -->
-
+<script type="text/javascript">
+    'use strict';
+    $(document).ready(function () { 
+        <?php if(!empty(session()->getFlashdata('fail'))){ ?>
+            swal('<?= _('Se ha producido un error'); ?>', '<?= session()->getFlashdata('fail'); ?>', "error");
+        <?php } ?>
+        <?php if(!empty(session()->getFlashdata('success'))){ ?>
+            swal('<?= _('Felicidades'); ?>', '<?=session()->getFlashdata('success'); ?>', "success");
+        <?php } ?>
+        <?php if(!empty(session()->getFlashdata('warning'))){ ?>
+            swal('<?= _('Alerta'); ?>', '<?= session()->getFlashdata('warning'); ?>', "warning");
+        <?php } ?>
+        <?php if(!empty(session()->getFlashdata('info'))){ ?>
+            swal('<?= _('Información'); ?>', '<?= session()->getFlashdata('info'); ?>', "info");
+        <?php } ?>
+    });
+</script>
 </body>
 </html>
