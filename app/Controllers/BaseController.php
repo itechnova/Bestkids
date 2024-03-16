@@ -83,6 +83,13 @@ abstract class BaseController extends Controller
     /**
      * An string of helpers to be loaded automatically upon
      *
+     * @var string
+     */
+    protected $withLayout = '';
+
+    /**
+     * An string of helpers to be loaded automatically upon
+     *
      * @var object
      */
     protected $content = false;
@@ -168,6 +175,7 @@ abstract class BaseController extends Controller
                 'title' => $this->titleWebsite,
                 'titlePage' => $this->titlePage,
                 'description' => $this->description,
+                'filter' => $this->viewFilter,
                 'breadcrumbs' => $this->breadcrumbs,
                 'content' => $this->content,
                 'model' => $this->getModel(),
@@ -176,6 +184,7 @@ abstract class BaseController extends Controller
                 'validator'=>$this->validator,
                 'columns'=>$this->getColumns(),
                 'all'=>$this->FILTER(),
+                'layout' => $this->withLayout,
                 'td'=>function($tr, $td, $column){
                     return $this->td($tr, $td, $column);
                 }
@@ -208,6 +217,7 @@ abstract class BaseController extends Controller
         $this->description = $this->viewContent()->list->description;
         $this->setContent($this->viewContent()->list->title, $this->viewContent()->list->content);
         $this->addBreadcrumb($this->titlePage);
+        $this->withLayout = 'index';
         return $this->View($this->viewList);
     }
 
@@ -217,6 +227,7 @@ abstract class BaseController extends Controller
         $this->description = $this->viewContent()->new->description;
         $this->setContent($this->viewContent()->new->title, $this->viewContent()->new->content);
         $this->addBreadcrumb($this->titlePage);
+        $this->withLayout = 'new';
         return $this->View($this->viewEdit);
     }
 
@@ -238,6 +249,7 @@ abstract class BaseController extends Controller
 
         $this->setValues($Model);
 
+        $this->withLayout = 'view';
         return $this->View($this->viewView);
     }
 
@@ -256,7 +268,22 @@ abstract class BaseController extends Controller
 
         $this->setValues($Model);
 
+        $this->withLayout = 'edit';
         return $this->View($this->viewEdit);
+    }
+
+    public function trash($id): object
+    {
+        $Model = $this->getModel();
+        $Data = $Model->Exists($id);
+        if(strlen(trim($id))===0 || is_null($Data)){
+            return redirect()->to($this->slug.'s')->with('warning', '¡Este registro no existe!');
+        }
+
+        $this->setValues($Data);
+        $Model->delete($this->getID());
+
+        return redirect()->to($this->slug.'s')->with('success', '¡El registro ha sido eliminado exitosamente!');
     }
 
     public function saved(){

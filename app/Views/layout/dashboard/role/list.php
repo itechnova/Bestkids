@@ -7,7 +7,7 @@
 
                     <h5 class="card-title mb-3"><?=_($content->title);?></h5>
                     <p><?=_($content->content);?></p>
-
+                    
                     <?php 
                         echo table_html((Object) array(
                             'columns' => $columns,

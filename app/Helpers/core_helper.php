@@ -339,7 +339,7 @@ if (!function_exists('table_html')) {
         }
 
         ob_start(); ?>
-        <table id="<?=$id;?>" class="<?=$class;?>">
+        <table id="<?=$id;?>" class="<?=$class;?>" style="width: 100%;">
             <thead>
                 <tr>
                     <?php foreach ($columns as $column) { ?>

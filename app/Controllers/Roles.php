@@ -41,6 +41,13 @@ class Roles extends BaseController
     protected $viewList = 'role/list';
 
     /**
+     * An string of helpers to be loaded automatically upon
+     *
+     * @var string
+     */
+    protected $viewFilter = 'role/filter';
+
+    /**
      * An object of helpers to be loaded automatically upon
      *
      * @var object

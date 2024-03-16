@@ -48,16 +48,27 @@
 
             <!-- begin::page-header -->
             <div class="page-header">
-                <h4><?=_($titlePage);?></h4>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <?php foreach ($breadcrumbs as $key => $breadcrumb) { ?>
-                            <li class="breadcrumb-item<?=((count($breadcrumbs)-1)===$key)?" active":""?>" <?=((count($breadcrumbs)-1)===$key)?"aria-current=\"page\"":""?>>
-                                <a href="<?=$breadcrumb->slug;?>"><?=_($breadcrumb->title);?></a>
-                            </li>
+                <?php if(isset($filter)){ ?>    
+                <div class="row">
+                    <div class="col-sm-12 col-md-6">
                         <?php } ?>
-                    </ol>
-                </nav>
+                        <h4><?=_($titlePage);?></h4>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <?php foreach ($breadcrumbs as $key => $breadcrumb) { ?>
+                                    <li class="breadcrumb-item<?=((count($breadcrumbs)-1)===$key)?" active":""?>" <?=((count($breadcrumbs)-1)===$key)?"aria-current=\"page\"":""?>>
+                                        <a href="<?=$breadcrumb->slug;?>"><?=_($breadcrumb->title);?></a>
+                                    </li>
+                                <?php } ?>
+                            </ol>
+                        </nav>
+                    <?php if(isset($filter)){ ?>    
+                    </div>
+                    <div class="ccol-sm-12 col-md-6">
+                        <?=view('layout/dashboard/'.$filter);?>
+                    </div>
+                </div>
+                <?php } ?>
             </div>
             <!-- end::page-header -->
             <?=view('layout/dashboard/'.$view);?>
