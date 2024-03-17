@@ -47,6 +47,11 @@ class Roles extends BaseController
      */
     protected $viewFilter = 'role/filter';
 
+    /*public function getName(): string
+    {
+        return 'roles';
+    }*/
+
     /**
      * An object of helpers to be loaded automatically upon
      *

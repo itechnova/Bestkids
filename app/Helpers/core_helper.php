@@ -59,7 +59,7 @@ if (!function_exists('form_html')) {
 }
 
 if (!function_exists('field_html')) {
-    function field_html($field, $values, $validator) {
+    function field_html($field, $values = [], $validator = NULL) {
 
         $name = "";
         if(property_exists($field, 'name')){

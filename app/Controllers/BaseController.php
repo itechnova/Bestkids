@@ -187,11 +187,16 @@ abstract class BaseController extends Controller
                 'layout' => $this->withLayout,
                 'td'=>function($tr, $td, $column){
                     return $this->td($tr, $td, $column);
+                },
+                'head'=>function(){
+                    return $this->head();
+                },
+                'script'=>function(){
+                    return $this->script();
                 }
             ],
             $Params
         ));
-
     }
 
     protected function isNew(){
@@ -317,5 +322,15 @@ abstract class BaseController extends Controller
 
     protected function td($tr, $td, $column){
         return $td;
+    }
+
+    protected function head(): string
+    {
+        return '';
+    }
+
+    protected function script(): string
+    {
+        return '';
     }
 }

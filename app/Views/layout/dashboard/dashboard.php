@@ -39,6 +39,8 @@
             margin-right: 7px;
         }
     </style>
+
+    <?=(isset($head)?$head():"")?>
 </head>
 <body>
 
@@ -124,5 +126,8 @@
         <?php } ?>
     });
 </script>
+
+<?=(isset($script)?$script():"")?>
+
 </body>
 </html>
