@@ -350,37 +350,39 @@ if (!function_exists('table_html')) {
         }
 
         ob_start(); ?>
-        <table id="<?=$id;?>" class="<?=$class;?>" style="width: 100%;">
-            <thead>
-                <tr>
-                    <?php foreach ($columns as $column) { ?>
-                        <th><?=$column->label;?></th>
-                    <?php } ?>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($datas as $data) { ?>
+        <div class="table-responsive"> <!-- Required for Responsive -->
+            <table id="<?=$id;?>" class="<?=$class;?>" style="width: 100%;">
+                <thead>
                     <tr>
                         <?php foreach ($columns as $column) { ?>
-                            <?php
-                                $_DATA = isset($data[$column->key]) ? $data[$column->key]: $data;
-                                if(!isset($data[$column->key]) && $column->key !== 'ACTION'){
-                                    $_DATA = "";
-                                }
-                            ?>
-                            <td><?=$td?$td($data, $_DATA, $column->key):$_DATA;?></td>
+                            <th><?=$column->label;?></th>
                         <?php } ?>
                     </tr>
-                <?php } ?>
-            </tbody>
-            <tfoot>
-                <tr>
-                    <?php foreach ($columns as $column) { ?>
-                        <th><?=$column->label;?></th>
+                </thead>
+                <tbody>
+                    <?php foreach ($datas as $data) { ?>
+                        <tr>
+                            <?php foreach ($columns as $column) { ?>
+                                <?php
+                                    $_DATA = isset($data[$column->key]) ? $data[$column->key]: $data;
+                                    if(!isset($data[$column->key]) && $column->key !== 'ACTION'){
+                                        $_DATA = "";
+                                    }
+                                ?>
+                                <td><?=$td?$td($data, $_DATA, $column->key):$_DATA;?></td>
+                            <?php } ?>
+                        </tr>
                     <?php } ?>
-                </tr>
-            </tfoot>
-        </table>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <?php foreach ($columns as $column) { ?>
+                            <th><?=$column->label;?></th>
+                        <?php } ?>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
         <?php return ob_get_clean();
     }
 }

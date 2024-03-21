@@ -42,13 +42,21 @@
             margin-right: 7px;
         }
 
-        table.Datatable.table.tabled-menu .new-field-menu label {
+        table.Datatable.table.tabled-menu .new-field-menu label,
+        table.Datatable.table.tabled-model label {
             font-size: 11px;
             margin-bottom: 0px;
         }
 
-        table.Datatable.table.tabled-menu .new-field-menu{
+        table.Datatable.table.tabled-menu .new-field-menu,
+        table.Datatable.table.tabled-model .form-group{
             margin-bottom: 0px;
+        }
+
+        tr.new-menu-item td:hover,
+        tr.new-model-item td:hover {
+            width: 100%;
+            min-width: 280px;
         }
 
         .select2-container--default .select2-selection--single .select2-selection__rendered {

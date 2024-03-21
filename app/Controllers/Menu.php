@@ -148,6 +148,14 @@ class Menu extends BaseController
             return '<div class="menu_'.$ModelID.' '.$column.'" data-value="'.$td.'">'.(intval($td) === 1 ? _('Si'):_('No')).'</div>';
         }
 
+        if($column === 'menu'){
+            $OPTION = [
+                'menu'=>'Menú',
+                'divider'=>'Separador'
+            ];
+            return '<div class="menu_'.$ModelID.' '.$column.'" data-value="'.$td.'">'.$OPTION[$td].'</div>';
+        }
+
         if($column === 'target'){
             $OPTION = [
                 '_self'=>_('Misma ventana'),
@@ -190,7 +198,6 @@ class Menu extends BaseController
         }
         return json_encode(['row' => $row, 'validator'=> (\Config\Services::validation())->getErrors()]);
     }
-
 
     public function trash($id)
     {
@@ -250,9 +257,10 @@ class Menu extends BaseController
                     const menuEdited = $(this);
                     const MenuID = menuEdited.attr('data-id');
 
+                    let $ColID = $('.tabled-menu').find('tr td .menu_'+MenuID+'.idmenu');
 
                     let tabled = $('.tabled-menu').DataTable();
-                    let $tr = menuEdited.closest('tr');
+                    let $tr = $ColID.closest('tr');
                     // let row = tabled.row($tr);
                     // let tr = row.data();
                     
@@ -283,8 +291,11 @@ class Menu extends BaseController
                     const menuEdited = $(this);
                     const MenuID = menuEdited.attr('data-id');
 
+                    menuEdited.closest('.dropdown-menu').remove();
+
+                    let $ColID = $('.tabled-menu').find('tr td .menu_'+MenuID+'.idmenu');
                     let tabled = $('.tabled-menu').DataTable();
-                    let $tr = menuEdited.closest('tr');
+                    let $tr = $ColID.closest('tr');
                     let row = tabled.row($tr);
                     let tr = row.data();
 
