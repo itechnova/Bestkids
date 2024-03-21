@@ -113,6 +113,18 @@ if (!function_exists('field_html')) {
             $value = "";
             if(isset($values[$name])){
                 $value = $values[$name];
+            }            
+            
+            $options = "";
+            if(property_exists($field, 'options')){
+                ob_start();
+                if(property_exists($field, 'placeholder')){
+                    ?><option value=""><?=$field->placeholder;?></option><?php
+                }
+                foreach ($field->options as $value_option => $option_text) {
+                    ?><option value="<?=$value_option;?>"><?=$option_text;?></option><?php
+                }
+                $options = ob_get_clean();
             }
 
             $required = "";
@@ -129,6 +141,11 @@ if (!function_exists('field_html')) {
 
                 if($field->type === 'textarea'){
                     ob_start(); ?><textarea id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" class="form-control"<?=$placeholder;?><?=$required;?> rows="6"><?=$value;?></textarea><?php
+                    $context = ob_get_clean();                    
+                }
+
+                if($field->type === 'select'){
+                    ob_start(); ?><select id="<?=$id;?>" name="<?=$name;?>" class="form-control select-actived"<?=$placeholder;?><?=$required;?>><?=$options;?></select><?php
                     $context = ob_get_clean();                    
                 }
 
@@ -155,13 +172,7 @@ if (!function_exists('field_html')) {
                 }
             }
 
-            ob_start(); ?>
-            <div class="<?=$class;?>">
-                <?=$label;?>
-                <?=$context;?>
-                <?=$helper;?>
-            </div>
-            <?php return ob_get_clean();            
+            ob_start(); ?><div class="<?=$class;?>"><?=$label;?><?=$context;?><?=$helper;?></div><?php return ob_get_clean();            
         }
     }
 }

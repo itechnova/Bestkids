@@ -8,6 +8,7 @@ use CodeIgniter\Router\RouteCollection;
 $routes->get('/', 'Home::index');
 
 $ROUTE_DASHBOARD = 'dashboard';
+$ROUTE_SETTINGS = 'dashboard/settings';
 
 /* ROLES */
 $routes->get('/'.$ROUTE_DASHBOARD.'/roles', 'Roles::index');
@@ -20,9 +21,19 @@ $routes->post('/'.$ROUTE_DASHBOARD.'/role/saved', 'Roles::saved');
 
 /* PERMISOS */
 $routes->get('/'.$ROUTE_DASHBOARD.'/permissions/(:alphanum)', 'Permissions::index/$1');
-// $routes->get('/'.$ROUTE_DASHBOARD.'/permission/new', 'Permissions::new');
-// $routes->get('/'.$ROUTE_DASHBOARD.'/permission/view/(:alphanum)', 'Permissions::details/$1');
-// $routes->get('/'.$ROUTE_DASHBOARD.'/permission/edit/(:alphanum)', 'Permissions::edit/$1');
-// $routes->get('/'.$ROUTE_DASHBOARD.'/permission/trash/(:alphanum)', 'Permissions::trash/$1');
-
 $routes->post('/'.$ROUTE_DASHBOARD.'/permission/saved', 'Permissions::saved');
+
+
+/* USUARIOS */
+$routes->get('/'.$ROUTE_DASHBOARD.'/accounts/(:alphanum)', 'Accounts::index/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/account/(:alphanum)/new', 'Accounts::new/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/account/view/(:alphanum)', 'Accounts::details/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/account/edit/(:alphanum)', 'Accounts::edit/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/account/trash/(:alphanum)', 'Accounts::trash/$1');
+
+$routes->post('/'.$ROUTE_DASHBOARD.'/account/saved', 'Accounts::saved');
+
+/*MENU*/
+$routes->get('/'.$ROUTE_SETTINGS.'/menus', 'Menu::index');
+$routes->post('/'.$ROUTE_SETTINGS.'/menu/saved', 'Menu::saved');
+$routes->post('/'.$ROUTE_SETTINGS.'/menu/trash/(:alphanum)', 'Menu::trash/$1');

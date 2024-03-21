@@ -18,6 +18,9 @@
     <!-- DataTable -->
     <link rel="stylesheet" href="<?=base_url('public/vendors/dataTable/dataTables.min.css');?>" type="text/css">
 
+    <!-- Style -->
+    <link rel="stylesheet" href="<?=base_url('public/vendors/select2/css/select2.min.css');?>" type="text/css">
+
     <style>
 
         .error .form-control {
@@ -37,6 +40,19 @@
         .dataTables_wrapper .dataTables_length > label > select {
             max-width: 100px;
             margin-right: 7px;
+        }
+
+        table.Datatable.table.tabled-menu .new-field-menu label {
+            font-size: 11px;
+            margin-bottom: 0px;
+        }
+
+        table.Datatable.table.tabled-menu .new-field-menu{
+            margin-bottom: 0px;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 36px;
         }
     </style>
 
@@ -109,9 +125,19 @@
 <script src="<?=base_url('public/assets/js/custom.js');?>"></script>
 <script src="<?=base_url('public/assets/js/app.min.js');?>"></script>
 <!-- end::custom scripts -->
+
+<!-- Javascript -->
+<script src="<?=base_url('public/vendors/select2/js/select2.min.js');?>"></script>
 <script type="text/javascript">
     'use strict';
+
+    const initSelects = () => {
+        $('.select-actived').select2({
+            placeholder: '<?=_('Seleccione');?>'
+        });
+    }
     $(document).ready(function () { 
+        initSelects();
         <?php if(!empty(session()->getFlashdata('fail'))){ ?>
             swal('<?= _('Se ha producido un error'); ?>', '<?= session()->getFlashdata('fail'); ?>', "error");
         <?php } ?>

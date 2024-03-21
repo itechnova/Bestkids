@@ -156,7 +156,7 @@ class Permissions extends BaseController
         );
     }
 
-    public function index($id=""): string
+    public function index($id="")
     {
         $this->roleId = $id;
 
@@ -178,7 +178,7 @@ class Permissions extends BaseController
             return $this->View($this->viewList);
         }
 
-
+        return redirect()->to($this->slug.'s')->with('warning', '¡Este rol no existe!');
         //return parent::index();
     }
 
@@ -330,11 +330,6 @@ class Permissions extends BaseController
         return '';
     }
 
-    protected function head(): string
-    {
-        return '';
-    }
-
     protected function script(): string
     {
         ob_start(); ?>
@@ -345,9 +340,6 @@ class Permissions extends BaseController
             $(document).ready(function () { 
 
                 const ChangeSwitch = (permissionId, Name, checked) => {
-                    console.log(permissionId);
-                    console.log(Name);
-                    console.log(checked);
                     $.ajax({
                         url: '<?=site_url($this->slug."/saved");?>',   // URL a la que enviar la solicitud
                         method: 'POST',      // Método HTTP (POST, GET, etc.)

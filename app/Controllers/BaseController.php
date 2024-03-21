@@ -102,6 +102,13 @@ abstract class BaseController extends Controller
     protected $values = [];
 
     /**
+     * An array of helpers to be loaded automatically upon
+     *
+     * @var array
+     */
+    protected $vars = null;
+
+    /**
      * Be sure to declare properties for any property fetch you initialized.
      * The creation of dynamic property is deprecated in PHP 8.2.
      */
@@ -184,6 +191,7 @@ abstract class BaseController extends Controller
                 'validator'=>$this->validator,
                 'columns'=>$this->getColumns(),
                 'all'=>$this->FILTER(),
+                'vars'=>$this->vars,
                 'layout' => $this->withLayout,
                 'td'=>function($tr, $td, $column){
                     return $this->td($tr, $td, $column);
@@ -216,7 +224,7 @@ abstract class BaseController extends Controller
         return (Object) array();
     }
 
-    public function index(): string
+    public function index()
     {
         $this->titlePage = $this->viewContent()->list->titlePage;
         $this->description = $this->viewContent()->list->description;
@@ -226,7 +234,7 @@ abstract class BaseController extends Controller
         return $this->View($this->viewList);
     }
 
-    public function new(): string
+    public function new()
     {
         $this->titlePage = $this->viewContent()->new->titlePage;
         $this->description = $this->viewContent()->new->description;
@@ -236,7 +244,7 @@ abstract class BaseController extends Controller
         return $this->View($this->viewEdit);
     }
 
-    public function details($id): string
+    public function details($id)
     {
 
         $Model = $this->getModel()->Exists($id);
@@ -258,7 +266,7 @@ abstract class BaseController extends Controller
         return $this->View($this->viewView);
     }
 
-    public function edit($id): string
+    public function edit($id)
     {
         $this->titlePage = $this->viewContent()->edit->titlePage;
         $this->description = $this->viewContent()->edit->description;
@@ -277,7 +285,7 @@ abstract class BaseController extends Controller
         return $this->View($this->viewEdit);
     }
 
-    public function trash($id): object
+    public function trash($id)
     {
         $Model = $this->getModel();
         $Data = $Model->Exists($id);
