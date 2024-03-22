@@ -60,7 +60,6 @@ if (!function_exists('form_html')) {
 
 if (!function_exists('field_html')) {
     function field_html($field, $values = [], $validator = NULL) {
-
         $name = "";
         if(property_exists($field, 'name')){
             $name = $field->name;
@@ -122,7 +121,7 @@ if (!function_exists('field_html')) {
                     ?><option value=""><?=$field->placeholder;?></option><?php
                 }
                 foreach ($field->options as $value_option => $option_text) {
-                    ?><option value="<?=$value_option;?>"><?=$option_text;?></option><?php
+                    ?><option value="<?=$value_option;?>" <?=($value.""===$value_option."")?"selected":"";?>><?=$option_text;?></option><?php
                 }
                 $options = ob_get_clean();
             }
@@ -179,6 +178,7 @@ if (!function_exists('field_html')) {
 
 if (!function_exists('field_view_html')) {
     function field_view_html($field, $values, $validator) {
+        //var_dump($values);exit();
 
         $name = "";
         if(property_exists($field, 'name')){
@@ -234,6 +234,18 @@ if (!function_exists('field_view_html')) {
                 $value = $values[$name];
             }
 
+            $options = "";
+            if(property_exists($field, 'options')){
+                ob_start();
+                if(property_exists($field, 'placeholder')){
+                    ?><option value=""><?=$field->placeholder;?></option><?php
+                }
+                foreach ($field->options as $value_option => $option_text) {
+                    ?><option value="<?=$value_option;?>" <?=($value.""===$value_option."")?"selected":"";?>><?=$option_text;?></option><?php
+                }
+                $options = ob_get_clean();
+            }
+
             $required = "";
             if(property_exists($field, 'required')){
                 $required = " required=\"required\"";
@@ -248,6 +260,11 @@ if (!function_exists('field_view_html')) {
 
                 if($field->type === 'textarea'){
                     ob_start(); ?><textarea readonly id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" class="form-control"<?=$placeholder;?><?=$required;?> rows="6"><?=$value;?></textarea><?php
+                    $context = ob_get_clean();                    
+                }
+
+                if($field->type === 'select'){
+                    ob_start(); ?><select id="<?=$id;?>" name="<?=$name;?>" disabled class="form-control select-actived"<?=$placeholder;?><?=$required;?>><?=$options;?></select><?php
                     $context = ob_get_clean();                    
                 }
 

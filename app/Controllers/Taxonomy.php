@@ -104,6 +104,10 @@ class Taxonomy extends BaseController
                 'label' => _('Código')
             )),
             ((Object) array(
+                'key' => 'type',
+                'label' => _('Tipo')
+            )),
+            ((Object) array(
                 'key' => 'title',
                 'label' => _('Taxonomía')
             )),
@@ -164,6 +168,14 @@ class Taxonomy extends BaseController
             $OPTION = [
                 'publish'=>_('Público'),
                 'private'=>_('Privado'),
+            ];
+            return $OPTION[$td];
+        }
+
+        if($column === 'type'){
+            $OPTION = [
+                'terms'=>_('Categoría'),
+                'entity'=>_('Entidad'),
             ];
             return $OPTION[$td];
         }

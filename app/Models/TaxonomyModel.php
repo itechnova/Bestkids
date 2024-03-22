@@ -14,7 +14,7 @@ class TaxonomyModel extends Model
     protected $returnType     = 'array';
     protected $useSoftDeletes = true;
 
-    protected $allowedFields = ['code', 'title', 'content', 'level', 'status', 'enabled'];
+    protected $allowedFields = ['code', 'type', 'title', 'content', 'level', 'status', 'enabled'];
 
     protected bool $allowEmptyInserts = false;
 
@@ -82,6 +82,12 @@ class TaxonomyModel extends Model
 
     public function getValidation(){
         return [
+            'type'=>[
+                'rules'=>'required',
+                'errors'=>[
+                    'required' => _('Tipo es requerido.')
+                ]
+            ],
             'title'=>[
                 'rules'=>'required|min_length[3]|max_length[24]',
                 'errors'=>[
@@ -130,6 +136,20 @@ class TaxonomyModel extends Model
         foreach ($this->allowedFields as $field) {
             # code...
             switch ($field) {
+                case 'type':
+                    # code...
+                    $AllFields[] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Tipo',
+                        'type' => 'select',
+                        'options'=>[
+                            'terms'=>_('Categoría'),
+                            'entity'=>_('Entidad'),
+                        ],
+                        'placeholder'=> 'Seleccione',
+                        'required' => true
+                    );
+                    break;
                 case 'code':
                     # code...
                     $AllFields[] = (Object) array(
@@ -172,7 +192,6 @@ class TaxonomyModel extends Model
                 case 'status':
                     # code...
                     $AllFields[$field] = (Object) array(
-                        'class' => 'new-field-menu',
                         'name' => $field,
                         'label' => 'Estatus',
                         'type' => 'select',
