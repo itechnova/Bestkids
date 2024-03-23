@@ -58,6 +58,120 @@ if (!function_exists('form_html')) {
     }
 }
 
+if (!function_exists('proccess_options')) {
+    function proccess_options($field) {
+        $options = property_exists($field, 'options')?$field->options:"";
+
+        if($options === ""){
+            return [];
+        }
+
+        if(count(explode(':', $options))>1){
+            $dynamics = explode(':', $options);
+            $ModelLoad = "\App\Models"."\\".$dynamics[0];
+            try {
+                //code...
+                $Model = new $ModelLoad();
+
+                foreach (explode('&', $dynamics[1]) as $filter) {
+                    if(count(explode('=', $filter))>1){
+                        $where = explode('=', $filter);
+                        $column=$where[0];
+                        $value=$where[1];
+                        $Model->where($column, $value);
+                    }
+                }
+                $rows = $Model->findAll();
+
+                $OptionList = [];
+                foreach ($rows as $row) {
+                    $OptionList[$row[$Model->primaryKey()]] = $row[$Model->description()];
+                }
+                return $OptionList;
+            } catch (\Throwable $th) {
+                //throw $th;
+            }
+
+            return [];
+        }
+
+        if(count(explode('|', $options))>1){
+            $OptionList = [];
+            $dynamics = explode('|', $options);
+            foreach ($dynamics as $key => $option) {
+                $value="";
+                $text="";
+                if(count(explode('=', $option))>1){
+                    $option = explode('=', $option);
+                    $value=$option[0];
+                    $text=$option[1];
+                }else{
+                    $value=$option;
+                    $text=$option;
+                }
+
+                $OptionList[$value] = $text;
+            }
+
+            return $OptionList;
+        }
+    }
+}
+
+if (!function_exists('proccess_cols_html')) {
+    function proccess_cols_html($field, $html) {
+        $cols = property_exists($field, 'cols')?$field->cols:"";
+
+        if($cols === ""){
+            ob_start();
+            ?><div class="col-12"><?=$html;?></div><?php
+            return ob_get_clean();
+        }else{
+            $class = "";
+            foreach (explode('&', $cols) as $col) {
+                $classCol = explode(':', $col);
+                $class .= "col-".$classCol[0]."-".$classCol[1]." ";
+            }
+            ob_start();
+            ?><div class="<?=$class;?>"><?=$html;?></div><?php
+            return ob_get_clean();
+        }
+    }
+}
+
+if (!function_exists('field_dynamic_html')) {
+    function field_dynamic_html($field, $values = [], $validator = NULL) {
+
+        if(!isset($values[$field->name])){
+            $values[$field->name] = $field->default_value;
+        }
+
+        ob_start();
+
+        echo field_html(((Object) array(
+            'name' => 'field_dynamic_'.$field->name,
+            'type' => 'hidden',
+        )), ['field_dynamic_'.$field->name=>$field->idfield]);
+
+        $field_html = array(
+            'name' => $field->name,
+            'label' => $field->label,
+            'type' => $field->typefield,
+            'placeholder'=> $field->placeholder,
+            'class'=> $field->class,
+            'options' => proccess_options($field)
+        );
+
+        if($field->required."" === '1'){
+            $field_html['required'] =  true;
+        }
+
+        echo field_html(((Object) $field_html), $values, $validator);
+        
+        return proccess_cols_html($field, ob_get_clean());
+    }
+}
+
 if (!function_exists('field_html')) {
     function field_html($field, $values = [], $validator = NULL) {
         $name = "";
@@ -135,7 +249,11 @@ if (!function_exists('field_html')) {
             if(property_exists($field, 'type')){
                 if($field->type !== 'select' && $field->type !== 'textarea' && $field->type !== 'view'){
                     ob_start(); ?><input id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" value="<?=$value;?>" class="form-control"<?=$placeholder;?><?=$required;?>><?php
-                    $context = ob_get_clean();                    
+                    $context = ob_get_clean();
+                    
+                    if($field->type === 'hidden'){
+                        return $context;
+                    }
                 }
 
                 if($field->type === 'textarea'){
@@ -145,6 +263,11 @@ if (!function_exists('field_html')) {
 
                 if($field->type === 'select'){
                     ob_start(); ?><select id="<?=$id;?>" name="<?=$name;?>" class="form-control select-actived"<?=$placeholder;?><?=$required;?>><?=$options;?></select><?php
+                    $context = ob_get_clean();                    
+                }
+
+                if($field->type === 'slug'){
+                    ob_start(); ?><div class="d-flex mb-0 mx-0"><label class="align-items-center col-sm-2 d-flex mb-0 mr-0 pr-0 text-linkedin text-monospace" style="z-index: 1;height: 36px;border-radius: .25rem 0 0 .25rem;border: 1px solid #e1e1e1;border-right: none;background: #f7f7f7;white-space: nowrap; overflow: hidden;text-overflow: ellipsis;"><?=site_url();?></label><input id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" value="<?=$value;?>" style="border-radius: 0px .25rem .25rem 0px;" class="form-control"<?=$placeholder;?><?=$required;?>></div><?php
                     $context = ob_get_clean();                    
                 }
 
@@ -196,8 +319,10 @@ if (!function_exists('field_view_html')) {
                 $LabelClass = "";
                 if($field->type === 'switch'){
                     $LabelClass = " class=\"custom-control-label\"";
+                }else{
+                    $LabelClass = " class=\"calign-content-center align-items-center col-sm-2 d-flex font-weight-800 mb-0\"";
                 }
-                ob_start(); ?><label for="<?=$id?>"<?=$LabelClass;?>><?=_($field->label)?></label><?php
+                ob_start(); ?><label for="<?=$id?>"<?=$LabelClass;?> style="background: #f1f1f1;"><?=_($field->label)?></label><?php
                 $label = ob_get_clean();
             }
 
@@ -253,18 +378,22 @@ if (!function_exists('field_view_html')) {
 
             $context = "";
             if(property_exists($field, 'type')){
-                if($field->type !== 'select' && $field->type !== 'textarea' && $field->type !== 'view'){
-                    ob_start(); ?><input readonly id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" value="<?=$value;?>" class="form-control"<?=$placeholder;?><?=$required;?>><?php
-                    $context = ob_get_clean();                    
+                if($field->type !== 'select' && $field->type !== 'textarea' && $field->type !== 'view' && $field->type !== 'slug'){
+                    ob_start(); ?><input readonly id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" value="<?=$value;?>" class="col-sm-10 form-control-plaintext"<?=$placeholder;?><?=$required;?>><?php
+                    $context = ob_get_clean();   
+                    
+                    if($field->type === 'hidden'){
+                        return $context;
+                    }
                 }
 
                 if($field->type === 'textarea'){
-                    ob_start(); ?><textarea readonly id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" class="form-control"<?=$placeholder;?><?=$required;?> rows="6"><?=$value;?></textarea><?php
+                    ob_start(); ?><textarea readonly id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" class="col-sm-10 form-control-plaintext"<?=$placeholder;?><?=$required;?> rows="6"><?=$value;?></textarea><?php
                     $context = ob_get_clean();                    
                 }
 
                 if($field->type === 'select'){
-                    ob_start(); ?><select id="<?=$id;?>" name="<?=$name;?>" disabled class="form-control select-actived"<?=$placeholder;?><?=$required;?>><?=$options;?></select><?php
+                    ob_start(); ?><select id="<?=$id;?>" name="<?=$name;?>" disabled class="col-sm-10 form-control-plaintext"<?=$placeholder;?><?=$required;?>><?=$options;?></select><?php
                     $context = ob_get_clean();                    
                 }
 
@@ -275,13 +404,13 @@ if (!function_exists('field_view_html')) {
                             $checked = " checked";
                         }
                     }
-                    ob_start(); ?><div class="custom-control custom-switch disabled"><input disabled id="<?=$id;?>" name="<?=$name;?>" type="checkbox" <?=$checked;?> class="custom-control-input"<?=$placeholder;?><?=$required;?>><?=$label;?></div><?php
+                    ob_start(); ?><label class="col-sm-2 d-flex align-content-center align-items-center font-weight-800 mb-0" style="background: #f1f1f1;"><?=_($field->label)?></label><div class="cols-sm-10 px-3"><div class="custom-control custom-switch disabled"><input disabled id="<?=$id;?>" name="<?=$name;?>" type="checkbox" <?=$checked;?> class="custom-control-input"<?=$placeholder;?><?=$required;?>><?=$label;?></div></div><?php
                     $context = ob_get_clean();
                     $label = "";
                 }
 
                 if($value !== '' && $field->type === 'view'){
-                    ob_start(); ?><input readonly id="<?=$id;?>" name="<?=$name;?>" type="text" value="<?=$value;?>" class="form-control"<?=$placeholder;?>><?php
+                    ob_start(); ?><input readonly id="<?=$id;?>" name="<?=$name;?>" type="text" value="<?=$value;?>" class="col-sm-10 form-control-plaintext"<?=$placeholder;?>><?php
                     $context = ob_get_clean();                    
                 }else{
                     if($field->type === 'view' && $value === ''){
@@ -292,7 +421,7 @@ if (!function_exists('field_view_html')) {
             }
 
             ob_start(); ?>
-            <div class="<?=$class;?>">
+            <div class="<?=$class;?> row mx-0 border mb-0 border-bottom-0" style="border-bottom: none !important;">
                 <?=$label;?>
                 <?=$context;?>
                 <?=$helper;?>
@@ -399,6 +528,22 @@ if (!function_exists('table_html')) {
                     </tr>
                 </tfoot>
             </table>
+        </div>
+        <?php return ob_get_clean();
+    }
+}
+
+if (!function_exists('div_html')) {
+    function div_html($class) {
+        ob_start(); ?>
+        <div class="<?=$class?>">
+        <?php return ob_get_clean();
+    }
+}
+
+if (!function_exists('divEnd_html')) {
+    function divEnd_html() {
+        ob_start(); ?>
         </div>
         <?php return ob_get_clean();
     }

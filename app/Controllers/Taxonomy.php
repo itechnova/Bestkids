@@ -112,6 +112,10 @@ class Taxonomy extends BaseController
                 'label' => _('Taxonomía')
             )),
             ((Object) array(
+                'key' => 'view',
+                'label' => _('Vista')
+            )),
+            ((Object) array(
                 'key' => 'level',
                 'label' => _('Nivel')
             )),
@@ -176,6 +180,14 @@ class Taxonomy extends BaseController
             $OPTION = [
                 'terms'=>_('Categoría'),
                 'entity'=>_('Entidad'),
+            ];
+            return $OPTION[$td];
+        }
+
+        if($column === 'view'){
+            $OPTION = [
+                'list'=>_('Lista'),
+                'grid'=>_('Cuadriculas'),
             ];
             return $OPTION[$td];
         }

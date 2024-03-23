@@ -4,17 +4,17 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class AccountModel extends Model
+class TermModel extends Model
 {
-    protected $table      = 'accounts';
-    protected $primaryKey = 'idaccount';
+    protected $table      = 'terms';
+    protected $primaryKey = 'idterm';
 
     protected $useAutoIncrement = true;
 
     protected $returnType     = 'array';
     protected $useSoftDeletes = true;
 
-    protected $allowedFields = ['username', 'password', 'idrole', 'name', 'surname', 'phone', 'birthday', 'lastlogin', 'lastip', 'langcode', 'enabled'];
+    protected $allowedFields = ['idtaxonomy', 'title', 'slug', 'content', 'parent', 'status', 'enabled'];
 
     protected bool $allowEmptyInserts = false;
 
@@ -45,13 +45,18 @@ class AccountModel extends Model
     public function primaryKey() {
         return $this->primaryKey;
     }
-
+    
     public function description() {
-        return 'username';
+        return 'title';
     }
 
     public function Exists($Id){
         return $this->where($this->primaryKey, $Id)->first();
+
+    }
+
+    public function ExistsBySLug($slug){
+        return $this->where('slug', $slug)->first();
 
     }
 
@@ -76,11 +81,7 @@ class AccountModel extends Model
                 if($field === 'enabled'){
                     $_VALUES_[$field] = $values[$field] === "on" ? 1: 0;
                 }else{
-                    if($field === 'password'){
-                        $_VALUES_[$field] = \App\Libraries\Hash::encrypt($values[$field]);
-                    }else{
-                        $_VALUES_[$field] = $values[$field];
-                    }
+                    $_VALUES_[$field] = $values[$field];
                 }
             }
         }
@@ -90,42 +91,26 @@ class AccountModel extends Model
 
     public function getValidation(){
         return [
-            'username'=>[
-                'rules'=>'required|valid_email|is_unique[accounts.username]',
-                'errors'=>[
-                    'required' => _('El correo es requerido.'),
-                    'valid_email' => _('El correo no es válido.'),
-                    'is_unique' => _('El correo ya está registrado.')
-                ]
-            ],
-            'password'=>[
+            'slug'=>[
                 'rules'=>'required',
                 'errors'=>[
-                    'required' => _('La contraseña es requerido.')
+                    'required' => _('El enlace permanente es requerido.')
                 ]
             ],
-            'name'=>[
-                'rules'=>'required|min_length[3]|max_length[30]',
+            'title'=>[
+                'rules'=>'required|min_length[3]|max_length[24]',
                 'errors'=>[
-                    'required' => _('El nombre es requerido.'),
-                    'min_length' => _('El nombre debe tener al menos 3 caracteres de longitud.'),
-                    'max_length' => _('El nombre no debe tener más de 30 caracteres de longitud.')
+                    'required' => _('Título es requerido.'),
+                    'min_length' => _('Título debe tener al menos 3 caracteres de longitud.'),
+                    'max_length' => _('Título no debe tener más de 24 caracteres de longitud.')
                 ]
             ],
-            'surname'=>[
-                'rules'=>'required|min_length[3]|max_length[30]',
-                'errors'=>[
-                    'required' => _('El apellido es requerido.'),
-                    'min_length' => _('El apellido debe tener al menos 3 caracteres de longitud.'),
-                    'max_length' => _('El apellido no debe tener más de 30 caracteres de longitud.')
+            'status' => [
+                'rules' => 'required',
+                'errors' => [
+                    'required' => _('El estatus es requerido.')
                 ]
-            ]/*,
-            /*'birthday'=>[
-                'rules'=>'required',
-                'errors'=>[
-                    'required' => _('La fecha de cumpleaños es requerido.')
-                ]
-            ]*/
+            ]
         ];
     }
 
@@ -139,78 +124,62 @@ class AccountModel extends Model
             'type' => 'hidden'
         );
 
-        
-
         foreach ($this->allowedFields as $field) {
             # code...
             switch ($field) {
-                case 'idrole': 
-                    $AllFields[] = (Object) array(
-                        'name' => 'idrole',
+                case 'idtaxonomy': 
+                    $AllFields[$field] = (Object) array(
+                        'name' => 'idtaxonomy',
                         'type' => 'hidden'
                     );
                     break;
-                case 'name':
+                case 'slug':
                     # code...
                     $AllFields[] = (Object) array(
                         'name' => $field,
-                        'label' => 'Nombre',
-                        'type' => 'text',
-                        'placeholder'=> 'Ingresa nombre',
+                        'label' => 'Enlace permanente',
+                        'type' => 'slug',
+                        'placeholder'=> 'Ingresa enlace permanente',
                         'required' => true
                     );
                     break;
-                case 'surname':
+                case 'title':
                     # code...
                     $AllFields[] = (Object) array(
                         'name' => $field,
-                        'label' => 'Apellido',
+                        'label' => 'Título',
                         'type' => 'text',
-                        'placeholder'=> 'Ingresa apellido',
+                        'placeholder'=> 'Ingresa título',
                         'required' => true
                     );
                     break;
-                case 'username':
+                case 'content':
                     # code...
                     $AllFields[] = (Object) array(
                         'name' => $field,
-                        'label' => 'Correo',
-                        'type' => 'text',
-                        'placeholder'=> 'Ingresa correo',
+                        'label' => 'Descripción',
+                        'type' => 'textarea',
+                        'placeholder'=> 'Ingresa descripción',
+                    );
+                    break;
+                case 'status':
+                    # code...
+                    $AllFields[$field] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Estatus',
+                        'type' => 'select',
+                        'options'=>[
+                            'publish'=>_('Público'),
+                            'private'=>_('Privado'),
+                        ],
+                        'placeholder'=> 'Seleccione',
                         'required' => true
-                    );
-                    break;
-                case 'password':
-                    # code...
-                    $AllFields[] = (Object) array(
-                        'name' => $field,
-                        'label' => 'Contraseña',
-                        'type' => 'password',
-                        'placeholder'=> 'Ingresa contraseña',
-                    );
-                    break;
-                case 'phone':
-                    # code...
-                    $AllFields[] = (Object) array(
-                        'name' => $field,
-                        'label' => 'Móvil',
-                        'type' => 'text',
-                        'placeholder'=> 'Ingresa móvil',
-                    );
-                    break;
-                case 'birthday':
-                    # code...
-                    $AllFields[] = (Object) array(
-                        'name' => $field,
-                        'label' => 'Fecha de nacimiento',
-                        'type' => 'date',
-                        'placeholder'=> 'Ingresa fecha',
                     );
                     break;
                 case 'enabled':
                     $AllFields[] = (Object) array(
                         'name' => $field,
-                        'label' => 'Habilitar cuenta',
+                        'label' => 'Habilitar',
                         'type' => 'switch'                    
                     );
                     break;
@@ -218,34 +187,12 @@ class AccountModel extends Model
                     # code...
                     /*$AllFields[] = (Object) array(
                         'name' => $field,
-                        'label' => $field,
                         'type' => 'text'
                     );*/
                     break;
             }
             
         }
-
-        $AllFields[] = (Object) array(
-            'name' => 'lastlogin',
-            'label' => 'Último acceso',
-            'type' => 'view',
-            'required' => false
-        );
-
-        $AllFields[] = (Object) array(
-            'name' => 'lastip',
-            'label' => 'Último ip',
-            'type' => 'view',
-            'required' => false
-        );
-
-        $AllFields[] = (Object) array(
-            'name' => 'langcode',
-            'label' => 'Idioma',
-            'type' => 'view',
-            'required' => false
-        );
 
         $AllFields[] = (Object) array(
             'name' => $this->createdField,
@@ -274,5 +221,9 @@ class AccountModel extends Model
         }
 
         return true;
+    }
+
+    public function getMetas(){
+        return new TermMetaModel();
     }
 }

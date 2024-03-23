@@ -14,7 +14,7 @@ class FieldModel extends Model
     protected $returnType     = 'array';
     protected $useSoftDeletes = true;
 
-    protected $allowedFields = ['idtaxonomy', 'typefield', 'name', 'label', 'placeholder', 'default_value', 'options', 'orderby', 'class', 'cols', 'enabled', 'tabled'];
+    protected $allowedFields = ['idtaxonomy', 'typefield', 'name', 'label', 'placeholder', 'default_value', 'options', 'orderby', 'class', 'cols', 'required', 'enabled', 'tabled'];
 
     protected bool $allowEmptyInserts = false;
 
@@ -42,6 +42,10 @@ class FieldModel extends Model
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
 
+    public function primaryKey() {
+        return $this->primaryKey;
+    }
+    
     public function description() {
         return 'name';
     }
@@ -69,7 +73,7 @@ class FieldModel extends Model
         foreach ($this->allowedFields as $field) {
             # code...
             if(isset($values[$field])){
-                if($field === 'enabled' || $field === 'tabled'){
+                if($field === 'enabled' || $field === 'tabled' || $field === 'required'){
                     $_VALUES_[$field] = $values[$field] === "on" ? 1: 0;
                 }else{
                     $_VALUES_[$field] = $values[$field];
@@ -209,13 +213,20 @@ class FieldModel extends Model
                         'name' => $field,
                         'label' => 'Columnas',
                         'type' => 'text',
-                        'placeholder'=> 'Ej: xs:value&sm:value&md:value&lg:value&xl:value',
+                        'placeholder'=> 'Ej: sm:value&md:value&lg:value&xl:value',
                     );
                     break;
                 case 'tabled':
                     $AllFields[$field] = (Object) array(
                         'name' => $field,
                         'label' => 'Columna',
+                        'type' => 'switch'                    
+                    );
+                    break;
+                case 'required':
+                    $AllFields[$field] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Obligatorio',
                         'type' => 'switch'                    
                     );
                     break;

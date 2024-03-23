@@ -124,6 +124,10 @@ class Fields extends BaseController
                 'label' => _('Columnas')
             )),
             ((Object) array(
+                'key' => 'required',
+                'label' => _('Obligatorio')
+            )),
+            ((Object) array(
                 'key' => 'enabled',
                 'label' => _('Habilitado')
             )),
@@ -162,7 +166,7 @@ class Fields extends BaseController
     protected function td($tr, $td, $column){
         $ModelID = $this->getModel()->getID($tr);
 
-        if($column === 'enabled' || $column === 'tabled'){
+        if($column === 'enabled' || $column === 'tabled' || $column === 'required'){
             return '<div class="model_'.$ModelID.' '.$column.'" data-value="'.$td.'">'.(intval($td) === 1 ? _('Si'):_('No')).'</div>';
         }
 

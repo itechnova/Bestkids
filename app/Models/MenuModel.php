@@ -42,6 +42,10 @@ class MenuModel extends Model
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
 
+    public function primaryKey() {
+        return $this->primaryKey;
+    }
+    
     public function description() {
         return 'title';
     }

@@ -14,7 +14,7 @@ class TaxonomyModel extends Model
     protected $returnType     = 'array';
     protected $useSoftDeletes = true;
 
-    protected $allowedFields = ['code', 'type', 'title', 'content', 'level', 'status', 'enabled'];
+    protected $allowedFields = ['code', 'type', 'title', 'content', 'view', 'level', 'status', 'enabled'];
 
     protected bool $allowEmptyInserts = false;
 
@@ -42,13 +42,20 @@ class TaxonomyModel extends Model
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
 
+    public function primaryKey() {
+        return $this->primaryKey;
+    }
+    
     public function description() {
         return 'title';
     }
 
     public function Exists($Id){
         return $this->where($this->primaryKey, $Id)->first();
+    }
 
+    public function ExistsByCode($code, $type){
+        return $this->where('code', $code)->where('type', $type)->first();
     }
 
     public function getID($values){
@@ -86,6 +93,12 @@ class TaxonomyModel extends Model
                 'rules'=>'required',
                 'errors'=>[
                     'required' => _('Tipo es requerido.')
+                ]
+            ],
+            'view'=>[
+                'rules'=>'required',
+                'errors'=>[
+                    'required' => _('Vista es requerido.')
                 ]
             ],
             'title'=>[
@@ -145,6 +158,20 @@ class TaxonomyModel extends Model
                         'options'=>[
                             'terms'=>_('Categoría'),
                             'entity'=>_('Entidad'),
+                        ],
+                        'placeholder'=> 'Seleccione',
+                        'required' => true
+                    );
+                    break;
+                case 'view':
+                    # code...
+                    $AllFields[] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Vista',
+                        'type' => 'select',
+                        'options'=>[
+                            'list'=>_('Lista'),
+                            'grid'=>_('Cuadriculas'),
                         ],
                         'placeholder'=> 'Seleccione',
                         'required' => true
@@ -248,5 +275,17 @@ class TaxonomyModel extends Model
         }
 
         return true;
+    }
+
+    public function getFieldsExtras($idtaxonomy, $Filters = []){
+        $Fields = new FieldModel();
+
+        $Fields->where('idtaxonomy', $idtaxonomy);
+        foreach ($Filters as $key => $filter) {
+            # code...
+            $Fields->where($key, $filter);
+        }
+
+        return $Fields->findAll();
     }
 }
