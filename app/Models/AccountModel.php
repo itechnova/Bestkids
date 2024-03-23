@@ -88,6 +88,24 @@ class AccountModel extends Model
         return $_VALUES_;
     }
 
+    public function getValidationAuth(){
+        return [
+            'username'=>[
+                'rules'=>'required|valid_email',
+                'errors'=>[
+                    'required' => _('El correo es requerido.'),
+                    'valid_email' => _('El correo no es válido.')
+                ]
+            ],
+            'password'=>[
+                'rules'=>'required',
+                'errors'=>[
+                    'required' => _('La contraseña es requerido.')
+                ]
+            ],
+        ];
+    }
+
     public function getValidation(){
         return [
             'username'=>[
@@ -119,13 +137,7 @@ class AccountModel extends Model
                     'min_length' => _('El apellido debe tener al menos 3 caracteres de longitud.'),
                     'max_length' => _('El apellido no debe tener más de 30 caracteres de longitud.')
                 ]
-            ]/*,
-            /*'birthday'=>[
-                'rules'=>'required',
-                'errors'=>[
-                    'required' => _('La fecha de cumpleaños es requerido.')
-                ]
-            ]*/
+            ]
         ];
     }
 

@@ -222,6 +222,10 @@ class Terms extends BaseController
 
     public function index($code="")
     {
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
+
         if($this->allowedTaxonomy($code)){
             $this->titlePage = $this->viewContent()->list->titlePage.$this->Taxonomy['title'];
             $this->description = $this->viewContent()->list->description.$this->Taxonomy['title'];
@@ -238,6 +242,10 @@ class Terms extends BaseController
 
     public function new($code="")
     {
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
+        
         if($this->allowedTaxonomy($code)){
             $this->titlePage = $this->viewContent()->new->titlePage.$this->Taxonomy['title'];
             $this->description = $this->viewContent()->new->description.$this->Taxonomy['title'];

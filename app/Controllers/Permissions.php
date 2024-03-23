@@ -158,6 +158,10 @@ class Permissions extends BaseController
 
     public function index($id="")
     {
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
+
         $this->roleId = $id;
 
         if($this->roleId !== ""){
@@ -297,6 +301,9 @@ class Permissions extends BaseController
     }
 
     public function saved(){
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
         if($this->getID()){
             $data = $this->getValues();
 

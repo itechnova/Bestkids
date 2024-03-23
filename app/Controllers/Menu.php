@@ -171,7 +171,9 @@ class Menu extends BaseController
     }
 
     public function saved(){
-        
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
         $row = [];
         if($this->validate($this->getModel()->getValidation())){
             $data = ($this->getValues());
@@ -201,6 +203,9 @@ class Menu extends BaseController
 
     public function trash($id)
     {
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
         $Model = $this->getModel();
         $Data = $Model->Exists($id);
         if(strlen(trim($id))===0 || is_null($Data)){

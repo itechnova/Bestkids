@@ -179,6 +179,7 @@ abstract class BaseController extends Controller
         return view('layout/'.$this->layout.$this->layoutView, array_merge(
             [
                 'view' => $View,
+                'lang' => 'es',
                 'title' => $this->titleWebsite,
                 'titlePage' => $this->titlePage,
                 'description' => $this->description,
@@ -231,6 +232,12 @@ abstract class BaseController extends Controller
         $this->setContent($this->viewContent()->list->title, $this->viewContent()->list->content);
         $this->addBreadcrumb($this->titlePage);
         $this->withLayout = 'index';
+
+        // Verificar si el usuario ya está autenticado
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
+
         return $this->View($this->viewList);
     }
 
@@ -241,11 +248,19 @@ abstract class BaseController extends Controller
         $this->setContent($this->viewContent()->new->title, $this->viewContent()->new->content);
         $this->addBreadcrumb($this->titlePage);
         $this->withLayout = 'new';
+
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
+
         return $this->View($this->viewEdit);
     }
 
     public function details($id)
     {
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
 
         $Model = $this->getModel()->Exists($id);
         
@@ -263,11 +278,16 @@ abstract class BaseController extends Controller
         $this->setValues($Model);
 
         $this->withLayout = 'view';
+
         return $this->View($this->viewView);
     }
 
     public function edit($id)
     {
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
+
         $this->titlePage = $this->viewContent()->edit->titlePage;
         $this->description = $this->viewContent()->edit->description;
         $this->setContent($this->viewContent()->edit->title, $this->viewContent()->edit->content);
@@ -287,6 +307,10 @@ abstract class BaseController extends Controller
 
     public function trash($id)
     {
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
+
         $Model = $this->getModel();
         $Data = $Model->Exists($id);
         if(strlen(trim($id))===0 || is_null($Data)){
@@ -300,7 +324,10 @@ abstract class BaseController extends Controller
     }
 
     public function saved(){
-        //var_dump($this->request->getPost());
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
+
         if($this->validate($this->getModel()->getValidation())){
             $data = ($this->getValues());
 

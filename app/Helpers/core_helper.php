@@ -11,6 +11,14 @@ if (!function_exists('display_error')) {
         return ($validation->hasError($field)) ? $validation->getError($field) : false;
     }
 }
+if (!function_exists('logo_html')) {
+    function logo_html($full = false) {
+        $logo = 'public/assets/media/image/logo.png';
+        $logosm ='public/assets/media/image/logo-sm.png';
+        $logodark='public/assets/media/image/logo-dark.png';
+        ob_start(); ?><div id="logo"><a href="<?=site_url();?>"><img class="logo" src="<?=site_url($logo);?>" alt="logo"><?php if($full){ ?><img class="logo-sm" src="<?=site_url($logosm);?>" alt="small logo"><?php } ?><img class="logo-dark" src="<?=site_url($logodark);?>" alt="dark logo"></a></div><?php return ob_get_clean();
+    }
+}
 
 if (!function_exists('form_html')) {
     function form_html($form) {
@@ -245,10 +253,23 @@ if (!function_exists('field_html')) {
                 $required = " required=\"required\"";
             }
 
+            $attrs = "";
+            if(property_exists($field, 'attrs')){
+                if(is_array($field->attrs)){
+                    foreach ($field->attrs as $attr_key => $attr_value) {
+                        $attrs .= ' '.$attr_key.'="'.$attr_value.'"';
+                    }
+                }
+            }
+
             $context = "";
             if(property_exists($field, 'type')){
                 if($field->type !== 'select' && $field->type !== 'textarea' && $field->type !== 'view'){
-                    ob_start(); ?><input id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" value="<?=$value;?>" class="form-control"<?=$placeholder;?><?=$required;?>><?php
+                    $currentpassword = "";
+                    if($field->type === 'password'){
+                        $currentpassword = ' autocomplete="current-password"';
+                    }
+                    ob_start(); ?><input id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" value="<?=$value;?>" class="form-control"<?=$placeholder;?><?=$required;?><?=$currentpassword;?><?=$attrs;?>><?php
                     $context = ob_get_clean();
                     
                     if($field->type === 'hidden'){
@@ -257,17 +278,17 @@ if (!function_exists('field_html')) {
                 }
 
                 if($field->type === 'textarea'){
-                    ob_start(); ?><textarea id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" class="form-control"<?=$placeholder;?><?=$required;?> rows="6"><?=$value;?></textarea><?php
+                    ob_start(); ?><textarea id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" class="form-control"<?=$placeholder;?><?=$required;?> rows="6"<?=$attrs;?>><?=$value;?></textarea><?php
                     $context = ob_get_clean();                    
                 }
 
                 if($field->type === 'select'){
-                    ob_start(); ?><select id="<?=$id;?>" name="<?=$name;?>" class="form-control select-actived"<?=$placeholder;?><?=$required;?>><?=$options;?></select><?php
+                    ob_start(); ?><select id="<?=$id;?>" name="<?=$name;?>" class="form-control select-actived"<?=$placeholder;?><?=$required;?><?=$attrs;?>><?=$options;?></select><?php
                     $context = ob_get_clean();                    
                 }
 
                 if($field->type === 'slug'){
-                    ob_start(); ?><div class="d-flex mb-0 mx-0"><label class="align-items-center col-sm-2 d-flex mb-0 mr-0 pr-0 text-linkedin text-monospace" style="z-index: 1;height: 36px;border-radius: .25rem 0 0 .25rem;border: 1px solid #e1e1e1;border-right: none;background: #f7f7f7;white-space: nowrap; overflow: hidden;text-overflow: ellipsis;"><?=site_url();?></label><input id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" value="<?=$value;?>" style="border-radius: 0px .25rem .25rem 0px;" class="form-control"<?=$placeholder;?><?=$required;?>></div><?php
+                    ob_start(); ?><div class="d-flex mb-0 mx-0"><label class="align-items-center col-sm-2 d-flex mb-0 mr-0 pr-0 text-linkedin text-monospace" style="z-index: 1;height: 36px;border-radius: .25rem 0 0 .25rem;border: 1px solid #e1e1e1;border-right: none;background: #f7f7f7;white-space: nowrap; overflow: hidden;text-overflow: ellipsis;"><?=site_url();?></label><input id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" value="<?=$value;?>" style="border-radius: 0px .25rem .25rem 0px;" class="form-control"<?=$placeholder;?><?=$required;?><?=$attrs;?>></div><?php
                     $context = ob_get_clean();                    
                 }
 
@@ -278,13 +299,13 @@ if (!function_exists('field_html')) {
                             $checked = " checked";
                         }
                     }
-                    ob_start(); ?><div class="custom-control custom-switch"><input id="<?=$id;?>" name="<?=$name;?>" type="checkbox" <?=$checked;?> class="custom-control-input"<?=$placeholder;?><?=$required;?>><?=$label;?></div><?php
+                    ob_start(); ?><div class="custom-control custom-switch"><input id="<?=$id;?>" name="<?=$name;?>" type="checkbox" <?=$checked;?> class="custom-control-input"<?=$placeholder;?><?=$required;?><?=$attrs;?>><?=$label;?></div><?php
                     $context = ob_get_clean();
                     $label = "";
                 }
 
                 if($value !== '' && $field->type === 'view'){
-                    ob_start(); ?><input id="<?=$id;?>" name="<?=$name;?>" type="text" value="<?=$value;?>" class="form-control"<?=$placeholder;?>><?php
+                    ob_start(); ?><input id="<?=$id;?>" name="<?=$name;?>" type="text" value="<?=$value;?>" class="form-control"<?=$placeholder;?><?=$attrs;?>><?php
                     $context = ob_get_clean();                    
                 }else{
                     if($field->type === 'view' && $value === ''){

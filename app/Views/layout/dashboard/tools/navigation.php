@@ -2,13 +2,7 @@
 <div class="navigation">
 
     <!-- begin::logo -->
-    <div id="logo">
-        <a href="index.html">
-            <img class="logo" src="assets/media/image/logo.png" alt="logo">
-            <img class="logo-sm" src="assets/media/image/logo-sm.png" alt="small logo">
-            <img class="logo-dark" src="assets/media/image/logo-dark.png" alt="dark logo">
-        </a>
-    </div>
+    <?=logo_html(true);?>
     <!-- end::logo -->
 
     <!-- begin::navigation header -->

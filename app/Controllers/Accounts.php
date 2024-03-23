@@ -296,4 +296,72 @@ class Accounts extends BaseController
 
         return redirect()->to('dashboard/roles/')->with('warning', '¡Este rol no existe!');
     }
+
+    public function login(){
+
+        $session = session();
+
+        // Verificar si el usuario ya está autenticado
+        if ($session->get('isLoggedIn')) {
+            return redirect()->to('/dashboard');
+        }
+
+        $this->layout = 'public/';
+        $this->layoutView = 'public';
+
+        $this->titlePage = _('Inicia sesión');
+        $this->description = _('Accede a tu cuenta de usuario.');
+        $this->setContent($this->titlePage, NULL);
+
+        if(count($this->getValues())>0 && $this->request->getMethod() === 'post'){
+            $Model = $this->getModel();
+            if($this->validate($Model->getValidationAuth())){
+                // Obtener los datos del formulario
+                $username = $this->request->getPost('username');
+                $password = $this->request->getPost('password');
+
+                $remember = $this->request->getPost('remember');
+                //var_dump($this->request->getPost());exit();
+                // Verificar las credenciales del usuario
+                $User = $Model->where('username', $username)
+                              ->first();
+
+                if ($User && password_verify($password, $User['password'])) {
+                    // Iniciar sesión y redirigir al dashboard
+                    $session->set('isLoggedIn', true);
+                    $session->set('userData', $User);
+
+                    if($remember === 'on'){
+                        $cookieExpiration = time() + (7 * 24 * 60 * 60);
+                        // Crear cookie con el nombre de usuario y contraseña
+                        setcookie('remembered_username', $username, $cookieExpiration, '/');
+                        setcookie('remembered_password', $password, $cookieExpiration, '/');
+                        setcookie('remembered_remember', 1, $cookieExpiration, '/');
+                    }else{
+                         // Establece la caducidad de los cookies a una fecha pasada
+                        $cookieExpiration = time() - 3600; // Hace una hora
+
+                        // Establece los cookies con valor vacío y fecha de caducidad en el pasado
+                        setcookie('remembered_username', '', $cookieExpiration, '/');
+                        setcookie('remembered_password', '', $cookieExpiration, '/');
+                        setcookie('remembered_remember', '', $cookieExpiration, '/');
+                    }
+
+                    return redirect()->to('/dashboard');
+                } else {
+                    // Mostrar un mensaje de error si las credenciales son incorrectas
+                    return redirect()->to('login')->with('warning', 'Credenciales incorrectas. Por favor, inténtelo de nuevo.');
+                }
+
+            }
+        }else{
+            $Values = $this->getValues();
+            $Values['username'] = $this->request->getCookie('remembered_username');
+            $Values['password'] = $this->request->getCookie('remembered_password');
+            $Values['remember'] = $this->request->getCookie('remembered_remember');
+            $this->setValues($Values);
+        }
+
+        return $this->View('auth/login');
+    }
 }

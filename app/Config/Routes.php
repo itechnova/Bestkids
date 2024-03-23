@@ -10,6 +10,16 @@ $routes->get('/', 'Home::index');
 $ROUTE_DASHBOARD = 'dashboard';
 $ROUTE_SETTINGS = 'dashboard/settings';
 
+/* DASHBOARD */
+$routes->get('/'.$ROUTE_DASHBOARD, 'Taxonomy::index');
+
+/* AUTHENTICATE */
+$routes->get('/login', 'Accounts::login');
+$routes->post('/login', 'Accounts::login');
+
+$routes->get('/lost', 'Accounts::lost');
+$routes->get('/register', 'Accounts::register');
+
 /* ROLES */
 $routes->get('/'.$ROUTE_DASHBOARD.'/roles', 'Roles::index');
 $routes->get('/'.$ROUTE_DASHBOARD.'/role/new', 'Roles::new');
