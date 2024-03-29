@@ -14,11 +14,7 @@
 
         <!-- begin::header-logo -->
         <li class="nav-item" id="header-logo">
-            <a href="index.html">
-                <img class="logo" src="assets/media/image/logo.png" alt="logo">
-                <img class="logo-sm" src="assets/media/image/logo-sm.png" alt="small logo">
-                <img class="logo-dark" src="assets/media/image/logo-dark.png" alt="dark logo">
-            </a>
+            <?=logo_clean_html();?>
         </li>
         <!-- end::header-logo -->
     </ul>

@@ -29,6 +29,31 @@ $routes->get('/'.$ROUTE_DASHBOARD.'/role/trash/(:alphanum)', 'Roles::trash/$1');
 
 $routes->post('/'.$ROUTE_DASHBOARD.'/role/saved', 'Roles::saved');
 
+/* File Manager */
+
+$routes->get('/file/(:segment)', 'Filemanager::views/$1');
+$routes->get('/download/(:segment)', 'Filemanager::download/$1');
+
+$routes->get('/'.$ROUTE_DASHBOARD.'/file-manager', 'Filemanager::index');
+$routes->get('/'.$ROUTE_DASHBOARD.'/file-manager/folder/(:alphanum)', 'Filemanager::folder/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/file-manager/order/(:alphanum)', 'Filemanager::order/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/file-manager/recents', 'Filemanager::recents');
+$routes->get('/'.$ROUTE_DASHBOARD.'/file-manager/recycle', 'Filemanager::recycle');
+/*$routes->get('/'.$ROUTE_DASHBOARD.'/role/new', 'Roles::new');
+$routes->get('/'.$ROUTE_DASHBOARD.'/role/view/(:alphanum)', 'Roles::details/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/role/edit/(:alphanum)', 'Roles::edit/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/role/trash/(:alphanum)', 'Roles::trash/$1');*/
+
+$routes->post('/'.$ROUTE_DASHBOARD.'/file-manager/find', 'Filemanager::find');
+$routes->post('/'.$ROUTE_DASHBOARD.'/file-manager/content', 'Filemanager::content');
+$routes->post('/'.$ROUTE_DASHBOARD.'/file-manager/folder/saved', 'Filemanager::folderSaved');
+$routes->post('/'.$ROUTE_DASHBOARD.'/file-manager/upload', 'Filemanager::upload');
+$routes->post('/'.$ROUTE_DASHBOARD.'/file-manager/saved', 'Filemanager::save');
+
+$routes->post('/'.$ROUTE_DASHBOARD.'/file-manager/trash', 'Filemanager::trash');
+$routes->post('/'.$ROUTE_DASHBOARD.'/file-manager/restore', 'Filemanager::restore');
+$routes->post('/'.$ROUTE_DASHBOARD.'/file-manager/delete', 'Filemanager::delete');
+
 /* PERMISOS */
 $routes->get('/'.$ROUTE_DASHBOARD.'/permissions/(:alphanum)', 'Permissions::index/$1');
 $routes->post('/'.$ROUTE_DASHBOARD.'/permission/saved', 'Permissions::saved');
@@ -45,7 +70,9 @@ $routes->post('/'.$ROUTE_DASHBOARD.'/account/saved', 'Accounts::saved');
 
 /*MENU*/
 $routes->get('/'.$ROUTE_SETTINGS.'/menus', 'Menu::index');
+$routes->get('/'.$ROUTE_SETTINGS.'/menu/orders', 'Menu::orders');
 $routes->post('/'.$ROUTE_SETTINGS.'/menu/saved', 'Menu::saved');
+$routes->post('/'.$ROUTE_SETTINGS.'/menu/orders/saved', 'Settings::save');
 $routes->post('/'.$ROUTE_SETTINGS.'/menu/trash/(:alphanum)', 'Menu::trash/$1');
 
 /* TAXONOMÍAS */

@@ -50,6 +50,10 @@
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             line-height: 36px;
         }
+
+        .navigation {
+            min-height: 100vh;
+        }
     </style>
 
     <?=(isset($head)?$head():"")?>

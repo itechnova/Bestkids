@@ -133,7 +133,7 @@ abstract class BaseController extends Controller
         $this->addBreadcrumb($this->title, site_url($this->slug.'s'));
         // Do Not Edit This Line
 
-        helper(['core_helper']);
+        helper(['core_helper', 'option_helper']);
 
         parent::initController($request, $response, $logger);
 
@@ -154,12 +154,12 @@ abstract class BaseController extends Controller
         $this->values = $values;
     }
 
-    protected function getValues(){
+    protected function getValues($Model=false){
         if(!$this->getModel()){
             return false;
         }
 
-        return $this->getModel()->setValues($this->values);
+        return ($Model?$Model:$this->getModel())->setValues($this->values);
     }
 
     protected function getID(){
@@ -230,6 +230,7 @@ abstract class BaseController extends Controller
         $this->titlePage = $this->viewContent()->list->titlePage;
         $this->description = $this->viewContent()->list->description;
         $this->setContent($this->viewContent()->list->title, $this->viewContent()->list->content);
+        unset($this->breadcrumbs[1]);
         $this->addBreadcrumb($this->titlePage);
         $this->withLayout = 'index';
 
@@ -353,6 +354,32 @@ abstract class BaseController extends Controller
         }
         $this->addBreadcrumb($this->titlePage);
         return $this->View($this->viewEdit);
+    }
+
+    public function save(){
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
+
+        $data = ($this->getValues());
+
+        if($this->validate($this->getModel()->getValidation()) || count($this->getModel()->getValidation()) === 0){
+            
+            $Model = $this->getModel();
+            $Saved = ($this->isNew() && !$this->getID()) ? $Model->insert($data) : $Model->update($this->getID(), $data);
+
+            if($Saved){
+                $ModelId = $this->getID();
+                if($this->isNew() && !$this->getID()){
+                    $ModelId = $Model->getInsertID();
+                }
+                $data[$Model->primaryKey()] = $ModelId;
+                return json_encode(['data' => $data, 'validator'=> null, 'status' => 'success', 'message' => _('¡Los datos se han guardado correctamente!')]);
+            }
+
+        }
+        
+        return json_encode(['data' => $data, 'validator'=> (\Config\Services::validation())->getErrors()]);
     }
 
     protected function td($tr, $td, $column){

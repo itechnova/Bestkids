@@ -4,17 +4,17 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class RoleModel extends Model
+class FolderModel extends Model
 {
-    protected $table      = 'roles';
-    protected $primaryKey = 'idrole';
+    protected $table      = 'folders';
+    protected $primaryKey = 'idfolder';
 
     protected $useAutoIncrement = true;
 
     protected $returnType     = 'array';
     protected $useSoftDeletes = true;
 
-    protected $allowedFields = ['title', 'description', 'level', 'enabled'];
+    protected $allowedFields = ['idaccount', 'title', 'content', 'path', 'sub'];
 
     protected bool $allowEmptyInserts = false;
 
@@ -41,6 +41,35 @@ class RoleModel extends Model
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
+
+    public function deleteFiles($idFolder){
+        $Files = (new FileModel())->where('idfolder', $idFolder)->findAll();
+        foreach ($Files as $File) {
+            (new FileModel())->delete($File['idfile'], true);
+        }
+        return true;
+    }
+
+    public function deleteFolders($idFolder){
+        $subFolder = $this->where('sub', $idFolder)->findAll();
+
+        foreach ($subFolder as $Folder) {
+            # code...
+            $this->deleteFiles($Folder['idfolder']);
+            if($this->deleteFolders($Folder['idfolder'])){
+                $this->delete($Folder['idfolder'], true);
+            }
+        }
+
+        return true;
+    }
+
+    public function recovery($id) {
+        $this->allowedFields[] = $this->deletedField;
+        $data = [];
+        $data[$this->deletedField] = '0000-00-00 00:00:00';
+        return $this->update($id, $data);
+    }
 
     public function primaryKey() {
         return $this->primaryKey;
@@ -70,13 +99,25 @@ class RoleModel extends Model
             $_VALUES_[$this->primaryKey] = $values[$this->primaryKey];
         }
 
+        $User = User();
+
         foreach ($this->allowedFields as $field) {
             # code...
             if(isset($values[$field])){
-                if($field === 'enabled'){
-                    $_VALUES_[$field] = $values[$field] === "on" ? 1: 0;
-                }else{
-                    $_VALUES_[$field] = $values[$field];
+                $_VALUES_[$field] = $values[$field];
+
+                if($values[$field] === ""){
+                    if($field === 'idaccount'){
+                        if($User){
+                            $_VALUES_[$field] = $User->idaccount;
+                        }
+                    }
+                }
+            }else{
+                if($field === 'idaccount'){
+                    if($User){
+                        $_VALUES_[$field] = $User->idaccount;
+                    }
                 }
             }
         }
@@ -87,20 +128,11 @@ class RoleModel extends Model
     public function getValidation(){
         return [
             'title'=>[
-                'rules'=>'required|min_length[3]|max_length[24]',
+                'rules'=>'required|min_length[1]|max_length[24]',
                 'errors'=>[
-                    'required' => _('Título es requerido.'),
-                    'min_length' => _('Título debe tener al menos 3 caracteres de longitud.'),
-                    'max_length' => _('Título no debe tener más de 24 caracteres de longitud.')
-                ]
-            ],
-            'level' => [
-                'rules' => 'required|numeric|greater_than_equal_to[1]|less_than_equal_to[100]',
-                'errors' => [
-                    'required' => _('El nivel es requerido.'),
-                    'numeric' => _('El nivel debe ser un número.'),
-                    'greater_than_equal_to' => _('El nivel debe ser igual o mayor que 1.'),
-                    'less_than_equal_to' => _('El nivel debe ser igual o menor que 100.')
+                    'required' => _('Nombre es requerido.'),
+                    'min_length' => _('Nombre debe tener al menos 1 caracteres de longitud.'),
+                    'max_length' => _('Nombre no debe tener más de 24 caracteres de longitud.')
                 ]
             ]
         ];
@@ -123,48 +155,38 @@ class RoleModel extends Model
                     # code...
                     $AllFields[] = (Object) array(
                         'name' => $field,
-                        'label' => 'Nombre del rol',
+                        'label' => 'Nombre de la carpeta',
                         'type' => 'text',
-                        'placeholder'=> 'Ingresa nombre del rol',
+                        'placeholder'=> 'Ingresa nombre',
                         'required' => true
                     );
                     break;
-                case 'description':
+                case 'content':
                     # code...
                     $AllFields[] = (Object) array(
                         'name' => $field,
-                        'label' => 'Descripción del rol',
+                        'label' => 'Descripción de la carpeta',
                         'type' => 'textarea',
-                        'placeholder'=> 'Ingresa descripción del rol',
-                    );
-                    break;
-                case 'level':
-                    # code...
-                    $AllFields[] = (Object) array(
-                        'name' => $field,
-                        'label' => 'Nivel del rol',
-                        'type' => 'number',
-                        'placeholder'=> 'Ingresa nivel del rol',
-                        'required' => true
-                    );
-                    break;
-                case 'enabled':
-                    $AllFields[] = (Object) array(
-                        'name' => $field,
-                        'label' => 'Habilitar rol',
-                        'type' => 'switch'                    
+                        'placeholder'=> 'Ingresa descripción',
                     );
                     break;
                 default:
                     # code...
-                    $AllFields[] = (Object) array(
+                    /*$AllFields[] = (Object) array(
                         'name' => $field,
                         'type' => 'text'
-                    );
+                    );*/
                     break;
             }
             
         }
+
+        $AllFields[] = (Object) array(
+            'name' => 'idaccount',
+            'label' => 'Autor',
+            'type' => 'view',
+            'required' => false
+        );
 
         $AllFields[] = (Object) array(
             'name' => $this->createdField,

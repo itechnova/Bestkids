@@ -6,17 +6,104 @@ if (!function_exists('_')) {
     }
 }
 
+if (!function_exists('get_menu')) {
+    function get_menu($Id, $menus) {
+        $returnMenu = false;
+        foreach ($menus as $menu) {
+            if(intval($menu['idmenu']) === intval($Id)){
+                $returnMenu = $menu;
+            }
+        }
+
+        return $returnMenu;
+    }
+}
+
+if (!function_exists('dd_item_menu')) {
+    function dd_item_menu($lists = [], $rows = []) {
+        ob_start(); ?>
+        <ol class="dd-list">
+            <?php foreach ($lists as $key => $menu) { ?>
+                <?php 
+                    $Id = "";
+                    $menuType ="";
+                    $Title = "";
+                    if(!is_array($menu) && property_exists($menu, 'id')){
+                        $Id = $menu->id;
+                        $MenuFind = get_menu($Id, $rows);
+                        if($MenuFind){
+                            $menuType = $MenuFind['menu'];
+                            $Title = $MenuFind['title'];
+                        }
+                    }else{
+                        $Id = $menu['idmenu'];
+                        $menuType = $menu['menu'];
+                        $Title = $menu['title'];
+                    }
+                ?>
+                <li class="dd-item dd3-item" data-id="<?=$Id;?>">
+                    <div class="dd-handle dd3-handle"></div>
+                    <div class="dd3-content"><?=$menuType.' - '.$Title;?></div>
+                    <?php
+                        if(!is_array($menu) && property_exists($menu, 'children')){
+                            echo dd_item_menu($menu->children, $rows);
+                        }
+                    ?>
+                </li>
+            <?php } ?>
+        </ol>
+        <?php return ob_get_clean();
+    }
+}
+
+if (!function_exists('dd_item_menu_new')) {
+    function dd_item_menu_new($lists = [], $rows = []) {
+        $filteredRows = array();
+        
+        foreach ($rows as $row) {
+            $id = $row['idmenu'];
+            $found = false;
+        
+            foreach ($lists as $item) {
+                if(property_exists($item, 'id')){
+                    if (intval($id) == intval($item->id) || in_array(intval($id), array_column((property_exists($item, 'children')?$item->children:[]), 'id'))) {
+                        $found = true;
+                        break;
+                    }
+                }
+            }
+        
+            if (!$found) {
+                $filteredRows[] = $row;
+            }
+        }
+        ob_start(); 
+        echo dd_item_menu($filteredRows, $rows);
+        return ob_get_clean();
+    }
+}
+
 if (!function_exists('display_error')) {
     function display_error($validation, $field){
         return ($validation->hasError($field)) ? $validation->getError($field) : false;
     }
 }
+
 if (!function_exists('logo_html')) {
     function logo_html($full = false) {
-        $logo = 'public/assets/media/image/logo.png';
-        $logosm ='public/assets/media/image/logo-sm.png';
-        $logodark='public/assets/media/image/logo-dark.png';
+        $logo = '/public/assets/media/image/logo.png';
+        $logosm ='/public/assets/media/image/logo-sm.png';
+        $logodark='/public/assets/media/image/logo-dark.png';
         ob_start(); ?><div id="logo"><a href="<?=site_url();?>"><img class="logo" src="<?=site_url($logo);?>" alt="logo"><?php if($full){ ?><img class="logo-sm" src="<?=site_url($logosm);?>" alt="small logo"><?php } ?><img class="logo-dark" src="<?=site_url($logodark);?>" alt="dark logo"></a></div><?php return ob_get_clean();
+    }
+}
+
+if (!function_exists('logo_clean_html')) {
+    function logo_clean_html() {
+        $logo = '/public/assets/media/image/logo.png';
+        $logosm ='/public/assets/media/image/logo-sm.png';
+        $logodark='/public/assets/media/image/logo-dark.png';
+        ob_start(); ?><a href="<?=site_url();?>"><img class="logo" src="<?=site_url($logo);?>" alt="logo"><img class="logo-sm" src="<?=site_url($logosm);?>" alt="small logo"><img class="logo-dark" src="<?=site_url($logodark);?>" alt="dark logo"></a><?php return ob_get_clean();
     }
 }
 
@@ -57,12 +144,7 @@ if (!function_exists('form_html')) {
             }
         }
 
-        ob_start(); ?>
-        <form <?=$method;?><?=$action;?><?=$action;?> class="<?=$class?>" novalidate>
-            <?=csrf_field();?>
-            <?=$context;?>
-        </form>
-        <?php return ob_get_clean();
+        return '<form'.$method.$action.' class="'.$class.'" novalidate>'.csrf_field().$context.'</form>';
     }
 }
 
@@ -279,17 +361,17 @@ if (!function_exists('field_html')) {
 
                 if($field->type === 'textarea'){
                     ob_start(); ?><textarea id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" class="form-control"<?=$placeholder;?><?=$required;?> rows="6"<?=$attrs;?>><?=$value;?></textarea><?php
-                    $context = ob_get_clean();                    
+                    $context = ob_get_clean();
                 }
 
                 if($field->type === 'select'){
                     ob_start(); ?><select id="<?=$id;?>" name="<?=$name;?>" class="form-control select-actived"<?=$placeholder;?><?=$required;?><?=$attrs;?>><?=$options;?></select><?php
-                    $context = ob_get_clean();                    
+                    $context = ob_get_clean();
                 }
 
                 if($field->type === 'slug'){
                     ob_start(); ?><div class="d-flex mb-0 mx-0"><label class="align-items-center col-sm-2 d-flex mb-0 mr-0 pr-0 text-linkedin text-monospace" style="z-index: 1;height: 36px;border-radius: .25rem 0 0 .25rem;border: 1px solid #e1e1e1;border-right: none;background: #f7f7f7;white-space: nowrap; overflow: hidden;text-overflow: ellipsis;"><?=site_url();?></label><input id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" value="<?=$value;?>" style="border-radius: 0px .25rem .25rem 0px;" class="form-control"<?=$placeholder;?><?=$required;?><?=$attrs;?>></div><?php
-                    $context = ob_get_clean();                    
+                    $context = ob_get_clean();
                 }
 
                 if($field->type === 'switch'){
@@ -306,7 +388,7 @@ if (!function_exists('field_html')) {
 
                 if($value !== '' && $field->type === 'view'){
                     ob_start(); ?><input id="<?=$id;?>" name="<?=$name;?>" type="text" value="<?=$value;?>" class="form-control"<?=$placeholder;?><?=$attrs;?>><?php
-                    $context = ob_get_clean();                    
+                    $context = ob_get_clean();
                 }else{
                     if($field->type === 'view' && $value === ''){
                         $label = "";
@@ -321,7 +403,7 @@ if (!function_exists('field_html')) {
 }
 
 if (!function_exists('field_view_html')) {
-    function field_view_html($field, $values, $validator) {
+    function field_view_html($field, $values, $validator, $full = false) {
         //var_dump($values);exit();
 
         $name = "";
@@ -341,7 +423,7 @@ if (!function_exists('field_view_html')) {
                 if($field->type === 'switch'){
                     $LabelClass = " class=\"custom-control-label\"";
                 }else{
-                    $LabelClass = " class=\"calign-content-center align-items-center col-sm-2 d-flex font-weight-800 mb-0\"";
+                    $LabelClass = " class=\"calign-content-center align-items-center col-sm-12 col-md-2 d-flex font-weight-800 mb-0\"";
                 }
                 ob_start(); ?><label for="<?=$id?>"<?=$LabelClass;?> style="background: #f1f1f1;"><?=_($field->label)?></label><?php
                 $label = ob_get_clean();
@@ -397,10 +479,19 @@ if (!function_exists('field_view_html')) {
                 $required = " required=\"required\"";
             }
 
+            $attrs = "";
+            if(property_exists($field, 'attrs')){
+                if(is_array($field->attrs)){
+                    foreach ($field->attrs as $attr_key => $attr_value) {
+                        $attrs .= ' '.$attr_key.'="'.$attr_value.'"';
+                    }
+                }
+            }
+
             $context = "";
             if(property_exists($field, 'type')){
                 if($field->type !== 'select' && $field->type !== 'textarea' && $field->type !== 'view' && $field->type !== 'slug'){
-                    ob_start(); ?><input readonly id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" value="<?=$value;?>" class="col-sm-10 form-control-plaintext"<?=$placeholder;?><?=$required;?>><?php
+                    ob_start(); ?><input readonly id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" value="<?=$value;?>" class="col-sm-12 col-md-10 form-control-plaintext"<?=$placeholder;?><?=$required;?>><?php
                     $context = ob_get_clean();   
                     
                     if($field->type === 'hidden'){
@@ -409,13 +500,18 @@ if (!function_exists('field_view_html')) {
                 }
 
                 if($field->type === 'textarea'){
-                    ob_start(); ?><textarea readonly id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" class="col-sm-10 form-control-plaintext"<?=$placeholder;?><?=$required;?> rows="6"><?=$value;?></textarea><?php
+                    ob_start(); ?><textarea readonly id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" class="col-sm-12 col-md-10 form-control-plaintext"<?=$placeholder;?><?=$required;?> rows="6"><?=$value;?></textarea><?php
                     $context = ob_get_clean();                    
                 }
 
                 if($field->type === 'select'){
-                    ob_start(); ?><select id="<?=$id;?>" name="<?=$name;?>" disabled class="col-sm-10 form-control-plaintext"<?=$placeholder;?><?=$required;?>><?=$options;?></select><?php
+                    ob_start(); ?><select id="<?=$id;?>" name="<?=$name;?>" disabled class="col-sm-12 col-md-10 form-control-plaintext"<?=$placeholder;?><?=$required;?>><?=$options;?></select><?php
                     $context = ob_get_clean();                    
+                }
+
+                if($field->type === 'slug'){
+                    ob_start(); ?><div class="d-flex mb-0 mx-0"><label class="align-items-center col-sm-2 d-flex mb-0 mr-0 pr-0 text-linkedin text-monospace" style="z-index: 1;height: 36px;border-radius: .25rem 0 0 .25rem;border: 1px solid #e1e1e1;border-right: none;background: #f7f7f7;white-space: nowrap; overflow: hidden;text-overflow: ellipsis;"><?=site_url();?></label><input readonly id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" value="<?=$value;?>" style="border-radius: 0px .25rem .25rem 0px;" class="form-control-plaintext"<?=$placeholder;?><?=$required;?><?=$attrs;?>></div><?php
+                    $context = ob_get_clean();
                 }
 
                 if($field->type === 'switch'){
@@ -425,13 +521,13 @@ if (!function_exists('field_view_html')) {
                             $checked = " checked";
                         }
                     }
-                    ob_start(); ?><label class="col-sm-2 d-flex align-content-center align-items-center font-weight-800 mb-0" style="background: #f1f1f1;"><?=_($field->label)?></label><div class="cols-sm-10 px-3"><div class="custom-control custom-switch disabled"><input disabled id="<?=$id;?>" name="<?=$name;?>" type="checkbox" <?=$checked;?> class="custom-control-input"<?=$placeholder;?><?=$required;?>><?=$label;?></div></div><?php
+                    ob_start(); ?><label class="col-sm-12 col-md-2 d-flex align-content-center align-items-center font-weight-800 mb-0" style="background: #f1f1f1;"><?=_($field->label)?></label><div class="cols-sm-10 px-3"><div class="custom-control custom-switch disabled"><input disabled id="<?=$id;?>" name="<?=$name;?>" type="checkbox" <?=$checked;?> class="custom-control-input"<?=$placeholder;?><?=$required;?>><?=$label;?></div></div><?php
                     $context = ob_get_clean();
                     $label = "";
                 }
 
-                if($value !== '' && $field->type === 'view'){
-                    ob_start(); ?><input readonly id="<?=$id;?>" name="<?=$name;?>" type="text" value="<?=$value;?>" class="col-sm-10 form-control-plaintext"<?=$placeholder;?>><?php
+                if(($value !== '' || $full) && $field->type === 'view'){
+                    ob_start(); ?><input readonly id="<?=$id;?>" name="<?=$name;?>" type="text" value="<?=$value;?>" class="col-sm-12 col-md-10 form-control-plaintext"<?=$placeholder;?>><?php
                     $context = ob_get_clean();                    
                 }else{
                     if($field->type === 'view' && $value === ''){
@@ -441,13 +537,13 @@ if (!function_exists('field_view_html')) {
                 }
             }
 
-            ob_start(); ?>
-            <div class="<?=$class;?> row mx-0 border mb-0 border-bottom-0" style="border-bottom: none !important;">
-                <?=$label;?>
-                <?=$context;?>
-                <?=$helper;?>
-            </div>
-            <?php return ob_get_clean();            
+            
+            $html = '<div class="'.$class.' row mx-0 border mb-0 border-bottom-0" style="border-bottom: none !important;">';
+            $html .= $label;
+            $html .= $context;
+            $html .= $helper;
+            $html .= '</div>';
+            return $html;          
         }
     }
 }
@@ -455,37 +551,43 @@ if (!function_exists('field_view_html')) {
 if (!function_exists('form_button_view_html')) {
     function form_button_view_html($model, $values, $action) {
         $ModelId = $model->getID($values);
-        ob_start(); ?>
-        <div style="display: flex;flex-direction: row;justify-content: flex-end;align-items: center;">
-            <?php if($ModelId){ ?>
-            <a  href="<?=site_url($action.'/edit/'.$ModelId);?>" class="btn btn-primary mx-1" style="color: #fff"><i class="fa fa-pencil-square-o mr-2"></i><?=_('Editar');?></a>
-            <?php } ?>
-            <a href="javascript:history.back()" class="btn btn-secondary mx-1" style="color: #fff"><i class="ti-arrow-left mr-2"></i><?=_('Volver');?></a>
-        </div>
-        <?php return ob_get_clean();
+        $html = '<div style="display: flex;flex-direction: row;justify-content: flex-end;align-items: center;">';
+        if($ModelId){
+            $html .= '<a  href="'.site_url($action.'/edit/'.$ModelId).'" class="btn btn-primary mx-1" style="color: #fff"><i class="fa fa-pencil-square-o mr-2"></i>'._('Editar').'</a>';
+        }
+        $html .= '<a href="javascript:history.back()" class="btn btn-secondary mx-1" style="color: #fff"><i class="ti-arrow-left mr-2"></i>'._('Volver').'</a></div>';
+        return $html;
+    }
+}
+
+if (!function_exists('form_saved_and_cancel_html')) {
+    function form_saved_and_cancel_html() {
+        $html = '<div style="display: flex;flex-direction: row;justify-content: flex-end;align-items: center;">';
+        $html .= '<a href="javascript:void(0)" class="btn-saved btn btn-success mx-1" style="color: #fff"><i class="ti-save mr-2"></i>'._('Guardar').'</a>';
+        $html .= '<a href="javascript:void(0)" class="btn-close btn btn-secondary mx-1" style="color: #fff"><i class="ti-close mr-2"></i>'._('Cancelar').'</a>';
+        $html .= '</div>';
+        return $html;
     }
 }
 
 if (!function_exists('form_button_html')) {
     function form_button_html($model, $values, $action) {
         $ModelId = $model->getID($values);
-        ob_start(); ?>
-        <div style="display: flex;flex-direction: row;justify-content: flex-end;align-items: center;">
-            <button type="submit" class="btn btn-success mx-1"><i class="ti-save mr-2"></i><?=_('Guardar');?></button>
-            <?php if($model->isDeleted($values)){ ?>
-            <a href="<?=site_url($action.'/trash/'.$ModelId);?>" class="btn btn-danger mx-1" style="color: #fff"><i class="ti-trash mr-2"></i><?=_('Eliminar');?></a>
-            <?php } ?>
-            <button type="reset" class="btn btn-secondary mx-1"><i class="ti-close mr-2"></i><?=_('Cancelar');?></button>
-        </div>
-        <?php return ob_get_clean();
+
+        $html = '<div style="display: flex;flex-direction: row;justify-content: flex-end;align-items: center;">';
+        $html .= '<button type="submit" class="btn btn-success mx-1"><i class="ti-save mr-2"></i>'._('Guardar').'</button>';
+        if($model->isDeleted($values)){
+            $html .= '<a href="'.site_url($action.'/trash/'.$ModelId).'" class="btn btn-danger mx-1" style="color: #fff"><i class="ti-trash mr-2"></i>'._('Eliminar').'</a>';
+        } 
+        $html .= '<button type="reset" class="btn btn-secondary mx-1"><i class="ti-close mr-2"></i>'._('Cancelar').'</button>';
+        $html .= '</div>';
+        return $html;
     }
 }
 
 if (!function_exists('br_html')) {
     function br_html() {
-        ob_start(); ?>
-        <div>&nbsp;</div>
-        <?php return ob_get_clean();
+        return '<div>&nbsp;</div>';
     }
 }
 
@@ -567,5 +669,227 @@ if (!function_exists('divEnd_html')) {
         ob_start(); ?>
         </div>
         <?php return ob_get_clean();
+    }
+}
+
+if (!function_exists('li_submenu')) {
+    function li_submenu($subItem, $subMenu, $menus) {
+        ob_start();?>
+        <li>
+            <a href="<?=(property_exists($subItem, 'children')?'javascript:void(0)':$subMenu->href);?>" target="<?=$subMenu->target?>"><?=$subMenu->title;?></a>
+            <?php if(property_exists($subItem, 'children')){ ?>
+                <ul>
+                    <?php 
+                        foreach ($subItem->children as $subSubItem) {
+                            $subSubMenu = get_menu($subSubItem->id, $menus);
+                            if($subSubMenu) {
+                                $subSubMenu = (Object) $subSubMenu;
+                                if($subSubmenu->menu !== 'divider'){
+                                    echo li_submenu($subSubItem, $subSubmenu, $menus);
+                                }
+                            }
+                        } 
+                    ?>
+                </ul>
+            <?php } ?>
+        </li>
+        <?php return ob_get_clean();
+    }
+}
+
+if (!function_exists('li_menu')) {
+    function li_menu($item, $menu, $menus) {
+        ob_start(); ?>
+        <li>
+            <a href="<?=(property_exists($item, 'children')?'javascript:void(0)':$menu->href);?>" target="<?=$menu->target?>">
+                <?php 
+                    if($menu->icon!==""){
+                        echo '<i class="nav-link-icon" data-feather="'.$menu->icon.'"></i>';
+                    }
+                ?>
+                <span><?=$menu->title;?></span>
+            </a>
+            <?php if(property_exists($item, 'children')){ ?>
+                <ul>
+                    <?php 
+                        foreach ($item->children as $subItem) { 
+                            $subMenu = get_menu($subItem->id, $menus); 
+                            if($subMenu){ 
+                                $subMenu = (Object) $subMenu; 
+                                if($subMenu->menu !== 'divider'){
+                                    echo li_submenu($subItem, $subMenu, $menus);
+                                }
+                            } 
+                        } 
+                    ?>
+                </ul>
+            <?php } ?>
+        </li>
+        <?php return ob_get_clean();
+    }
+}
+
+if (!function_exists('li_menus')) {
+    function li_menus($item, $menus) {
+        ob_start();
+        $menu = get_menu($item->id, $menus);
+        if($menu){
+            $menu = (Object) $menu;
+            if($menu->menu === 'divider'){
+                echo '<li class="navigation-divider">'.$menu->title.'</li>';
+                if(property_exists($item, 'children')){
+                    foreach ($item->children as $subItem) {
+                        $subMenu = get_menu($subItem->id, $menus);
+                        if($subMenu){
+                            $subMenu = (Object) $subMenu;
+                            echo li_menu($subItem, $subMenu, $menus);
+                        }
+                    }
+                }
+            }else{
+                echo li_menu($item, $menu, $menus);
+            }
+        }
+
+        return ob_get_clean();
+    }
+}
+
+if (!function_exists('modal_html')) {
+    function modal_html($modal) {
+        ob_start(); ?>
+        <div class="modal fade"<?=(property_exists($modal, 'id')?' id="'.$modal->id.'"': '')?> tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><?=(property_exists($modal, 'title')?$modal->title: '')?></h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <i class="ti-close"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <?=(property_exists($modal, 'content')?$modal->content: '')?>
+                    </div>
+                    <div class="modal-footer">
+                        <?=(property_exists($modal, 'footer')?$modal->footer: '')?>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php return ob_get_clean();
+    }
+}
+
+if (!function_exists('modal_button_html')) {
+    function modal_button_html($button) {
+        if(!property_exists($button, 'close')){
+            $button->close = (Object) array();
+        }
+        ob_start(); ?>
+        <button type="button" class="btn <?=(property_exists($button->close, 'class')?$button->close->class:'btn-secondary')?>" data-dismiss="modal"><?=(property_exists($button->close, 'content')?$button->close->content:'<i class="ti-close mr-2"></i>'._('Cancelar'))?></button>
+        <button type="button" class="btn <?=(property_exists($button->ok, 'class')?$button->ok->class:'btn-primary')?>"><?=(property_exists($button->ok, 'content')?$button->ok->content:_('Aceptar'))?></button>
+        <?php return ob_get_clean();
+    }
+}
+
+if (!function_exists('permanentLink')) {
+    function permanentLink($string) {
+        // Reemplazar espacios con guiones
+        $slug = str_replace(' ', '-', $string);
+        // Convertir a minúsculas
+        $slug = strtolower($slug);
+        // Eliminar caracteres especiales
+        $slug = preg_replace('/[^a-z0-9\-]/', '', $slug);
+        return $slug;
+    }
+}
+
+if (!function_exists('create_folder')) {
+    function create_folder($idaccount) {
+        $path = ""; // Inicializa la variable de ruta
+
+        $Setting = SETTING('upload_path');
+        // Obtén el año, mes, día y hora actual
+        $current_year = date("Y");
+        $current_month = date("m");
+        $current_day = date("d");
+        $current_hour = date("H");
+        $current_minute = date("i");
+        $current_second = date("s");
+        
+        // Itera hasta encontrar un nombre de directorio único
+        do {
+            // Construye la ruta del directorio
+            $path = $Setting->value . "Y$current_year/M$current_month/D$current_day/U$idaccount/F$current_year$current_month$current_day$current_hour$current_minute$current_second-$idaccount-" . rand(1, 100) . "/";
+        
+            // Verifica si el directorio existe
+            if (!is_dir($path)) {
+                // Si el directorio no existe, crea el directorio y termina el bucle
+                mkdir($path, 0777, true);
+                break;
+            } else {
+                // Si el directorio existe, genera un nuevo nombre de directorio único y repite el bucle
+                $current_second++;
+            }
+        } while (true);
+
+        return $path;
+    }
+}
+
+if (!function_exists('create_sub_folder')) {
+    function create_sub_folder($idaccount, $sub) {
+        $path = ""; // Inicializa la variable de ruta
+
+        $Model = new \App\Models\FolderModel();
+        
+        $Folder = $Model->where('idfolder', $sub)->first();
+
+        if(!IS_NULL($Folder)){
+            $current_year = date("Y");
+            $current_month = date("m");
+            $current_day = date("d");
+            $current_hour = date("H");
+            $current_minute = date("i");
+            $current_second = date("s");
+            do {
+                // Construye la ruta del directorio
+                $path = $Folder['path'] . "F$current_year$current_month$current_day$current_hour$current_minute$current_second-$idaccount-" . rand(1, 100) . "/";
+            
+                // Verifica si el directorio existe
+                if (!is_dir($path)) {
+                    // Si el directorio no existe, crea el directorio y termina el bucle
+                    mkdir($path, 0777, true);
+                    break;
+                } else {
+                    // Si el directorio existe, genera un nuevo nombre de directorio único y repite el bucle
+                    $current_second++;
+                }
+            } while (true);
+
+            return $path;
+        }
+
+        return create_folder($idaccount);
+    }
+}
+
+if (!function_exists('deleteAll')) {
+    function deleteAll($directorio) {
+        // Obtener una lista de archivos y subdirectorios en el directorio
+        $archivos = glob($directorio . '/*');
+    
+        // Eliminar cada archivo en el directorio
+        foreach ($archivos as $archivo) {
+            if (is_file($archivo)) {
+                unlink($archivo);
+            } elseif (is_dir($archivo)) {
+                // Llamar recursivamente a la función para eliminar subdirectorios
+                deleteAll($archivo);
+            }
+        }
+    
+        // Una vez que se eliminan todos los archivos y subdirectorios, eliminar el directorio principal
+        rmdir($directorio);
     }
 }

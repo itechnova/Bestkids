@@ -299,10 +299,10 @@ class Accounts extends BaseController
 
     public function login(){
 
-        $session = session();
+        
 
         // Verificar si el usuario ya está autenticado
-        if ($session->get('isLoggedIn')) {
+        if ((session()->get('isLoggedIn'))) {
             return redirect()->to('/dashboard');
         }
 
@@ -328,8 +328,7 @@ class Accounts extends BaseController
 
                 if ($User && password_verify($password, $User['password'])) {
                     // Iniciar sesión y redirigir al dashboard
-                    $session->set('isLoggedIn', true);
-                    $session->set('userData', $User);
+                    setAuthentication($User);
 
                     if($remember === 'on'){
                         $cookieExpiration = time() + (7 * 24 * 60 * 60);

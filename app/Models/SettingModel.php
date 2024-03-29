@@ -4,17 +4,17 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class TermMetaModel extends Model
+class SettingModel extends Model
 {
-    protected $table      = 'termmetas';
-    protected $primaryKey = 'idmeta';
+    protected $table      = 'settings';
+    protected $primaryKey = 'idsetting';
 
     protected $useAutoIncrement = true;
 
     protected $returnType     = 'array';
     protected $useSoftDeletes = false;
 
-    protected $allowedFields = ['idterm', 'idfield', 'value'];
+    protected $allowedFields = ['groups', 'name', 'value'];
 
     protected bool $allowEmptyInserts = false;
 
@@ -40,9 +40,9 @@ class TermMetaModel extends Model
     }
 
     public function description() {
-        return 'idfield';
+        return 'name';
     }
-    
+
     public function Exists($Id){
         return $this->where($this->primaryKey, $Id)->first();
 
@@ -56,7 +56,7 @@ class TermMetaModel extends Model
         }
         return false;
     }
-    
+
     public function getValidation(){
         return [];
     }

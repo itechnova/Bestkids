@@ -177,6 +177,8 @@ class Permissions extends BaseController
             $this->titlePage = $this->viewContent()->list->titlePage.$Label;
             $this->description = $this->viewContent()->list->description.$Label;
             $this->setContent($this->viewContent()->list->title, $this->viewContent()->list->content.$Label);
+            unset($this->breadcrumbs[1]);
+            $this->addBreadcrumb('Roles', site_url('dashboard/roles'));
             $this->addBreadcrumb($this->titlePage);
             $this->withLayout = 'index';
             return $this->View($this->viewList);

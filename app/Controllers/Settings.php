@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-class Roles extends BaseController
+class Settings extends BaseController
 {
 
     /**
@@ -10,42 +10,42 @@ class Roles extends BaseController
      *
      * @var string
      */
-    protected $title = 'Roles';
+    protected $title = 'Configuraciones';
         
     /**
      * An string of helpers to be loaded automatically upon
      *
      * @var string
      */
-    protected $slug = 'dashboard/role';
+    protected $slug = 'dashboard/setting';
 
     /**
      * An string of helpers to be loaded automatically upon
      *
      * @var string
      */
-    protected $viewView = 'role/view';
+    protected $viewView = 'settings/setting/view';
 
     /**
      * An string of helpers to be loaded automatically upon
      *
      * @var string
      */
-    protected $viewEdit = 'role/edit';
+    protected $viewEdit = 'settings/setting/edit';
 
     /**
      * An string of helpers to be loaded automatically upon
      *
      * @var string
      */
-    protected $viewList = 'role/list';
+    protected $viewList = 'settings/setting/list';
 
     /**
      * An string of helpers to be loaded automatically upon
      *
      * @var string
      */
-    protected $viewFilter = 'role/filter';
+    protected $viewFilter = 'settings/setting/filter';
 
     /*public function getName(): string
     {
@@ -127,7 +127,7 @@ class Roles extends BaseController
     }
 
     protected function getModel(){
-        return new \App\Models\RoleModel();
+        return new \App\Models\SettingModel();
     }
 
     protected function FILTER(){
