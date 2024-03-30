@@ -2,7 +2,7 @@
 $(document).ready(function () {
 
     $('.Datatable').DataTable({
-        responsive: true,
+        responsive: $('.Datatable').attr('responsive') === '1',
         aLengthMenu: [
             [10, 30, 50, -1],
             [10, 30, 50, "Todos"]

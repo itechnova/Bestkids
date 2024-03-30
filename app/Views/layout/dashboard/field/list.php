@@ -12,7 +12,8 @@
                             'class' => 'tabled-model',
                             'columns' => $columns,
                             'datas' => $all,
-                            'td' => $td
+                            'td' => $td,
+                            'responsive' => 0
                         ));
                     ?>
                 </section>

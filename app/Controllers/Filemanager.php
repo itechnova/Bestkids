@@ -353,11 +353,17 @@ class Filemanager extends BaseController
         }
         
         $data = [];
+        $data_view = [];
         foreach ($this->FILTER($this->request->getPost('search')) as $file) {
             $data[] = render_item_file((Object) $file);
+
+            if(isset($file['idfile'])){
+                $data_view[] = render_item_file_view((Object) $file);
+            }
         }
         return $this->response->setJSON([
             'data' => $data,
+            'view' => $data_view,
             'status' => 'success',
             'message' => null
         ]);
@@ -444,6 +450,8 @@ class Filemanager extends BaseController
                     $data = $Model->where($Model->primaryKey(), $Model->getInsertID())->first();
                     // El archivo se ha cargado exitosamente
                     return $this->response->setJSON([
+                        'file' => $data,
+                        'view' => render_item_file_view((Object) $data),
                         'data' => render_item_file((Object) $data),
                         'validator' => null,
                         'status' => 'success',

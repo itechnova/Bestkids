@@ -9,6 +9,8 @@
     <!-- Style -->
     <link rel="stylesheet" href="<?=base_url('public/vendors/select2/css/select2.min.css');?>" type="text/css">
 
+    <link rel="stylesheet" href="<?=base_url('public/vendors/dropzone/dropzone.css');?>" type="text/css">
+
     <style>
 
         .error .form-control {
@@ -53,6 +55,83 @@
 
         .navigation {
             min-height: 100vh;
+        }
+
+        .file-content {
+            position: relative;
+        }
+
+        .file-content .file-preview {
+            border-radius: 8px;
+            background: #f1f1f1;
+            height: 180px;
+            display: flex;
+            align-content: center;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .file-content .file-preview img {
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        .file-control {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            left: 0px;
+            bottom: 0px;
+            display: none;
+            z-index: 99;    
+            align-content: center;
+            justify-content: center;
+            align-items: center;
+            background: #1a1a1aa6;
+            border-radius: 8px;
+        }
+
+        .file-content:hover .file-control{
+            display: flex;
+        }
+
+        #uploadMedia .modal-content .modal-body {
+            padding-top: 8px;
+        }
+
+        form#dropzone-file-manager{ 
+            position: relative;
+        }
+
+        /*form#dropzone-file-manager > p {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            bottom: 0px;
+            left: 0px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            align-content: center;
+        }*/
+        .file-manager-item {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            right: 0px;
+            bottom: 0px;
+            flex-direction: row;
+            align-content: center;
+            justify-content: center;
+            align-items: center;
+            background: rgb(26 26 26 / 87%);
+            border-radius: 8px;
+            display: none;
+        }
+
+        .card.app-file-list.app-render-item:hover .file-manager-item{
+            display: flex;
         }
     </style>
 
@@ -108,6 +187,7 @@
     <!-- end::main-content -->
 
     <?=view('layout/dashboard/footer');?>
+    <?=view('layout/dashboard/filemanager/upload');?>
 </div>
 <!-- end::main -->
 
@@ -119,24 +199,134 @@
 <script src="<?=base_url('public/vendors/dataTable/jquery.dataTables.min.js');?>"></script>
 <script src="<?=base_url('public/vendors/dataTable/dataTables.bootstrap4.min.js');?>"></script>
 <script src="<?=base_url('public/vendors/dataTable/dataTables.responsive.min.js');?>"></script>
-<script src="<?=base_url('public/assets/js/examples/datatable.js?ver=1.0.2');?>"></script>
+<script src="<?=base_url('public/assets/js/examples/datatable.js?ver=1.0.4');?>"></script>
 
 <!-- begin::custom scripts -->
 <script src="<?=base_url('public/assets/js/custom.js');?>"></script>
-<script src="<?=base_url('public/assets/js/app.min.js');?>"></script>
+<script src="<?=base_url('public/assets/js/app.js');?>"></script>
 <!-- end::custom scripts -->
 
 <!-- Javascript -->
 <script src="<?=base_url('public/vendors/select2/js/select2.min.js');?>"></script>
+
+<!-- Javascript -->
+<script src="<?=base_url('public/vendors/dropzone/dropzone.js');?>"></script>
 <script type="text/javascript">
     'use strict';
-
     const initSelects = () => {
         $('.select-actived').select2({
             placeholder: '<?=_('Seleccione');?>'
         });
     }
     $(document).ready(function () { 
+
+        let FileSelectioned = null;
+        let InputMediaFile = null;
+        let FileContentPreview = null;
+        let Filemanager = new Dropzone("#dropzone-file-manager", {});
+        let BtnSelectFile = $('.btn-file-manager');
+
+        let PanelListManager = $('#panel-file-managers');
+        let InputSearch = $('input#input-file-manager-search')
+
+        let initSelected = () => {
+            $('.card.app-file-list.app-render-item .file-manager-item a').on('click', function(){
+                let idfile = $(this).attr('data-id');
+                if(InputMediaFile && idfile!=='none'){
+                    InputMediaFile.val(idfile);
+                    $.ajax({
+                        url: '<?=site_url('dashboard/file-manager/content');?>',   // URL a la que enviar la solicitud
+                        method: 'POST',      // Método HTTP (POST, GET, etc.)
+                        data: {typed: 'file', id: idfile},          // Datos a enviar en la solicitud (opcional)
+                        dataType: 'json'     // Tipo de datos esperados en la respuesta (opcional)
+                    }).done((response)=>{
+                        if(response?.data){
+                            FileSelectioned = response?.data;
+                            if(FileContentPreview){
+                                FileContentPreview.html('');
+                                FileContentPreview.append('<img src="<?=site_url("file/")?>'+FileSelectioned?.slug+'"/>');
+                            }
+                        }
+                        $('#uploadMedia button.close[data-dismiss="modal"]').click();
+                    }).fail(function(jqXHR, textStatus, errorThrown) {
+                        //Callback para manejar errores
+                        console.error('Error en la solicitud AJAX:', textStatus, errorThrown);
+                    });
+                }
+            });
+        }
+
+        BtnSelectFile.attr('disabled','disabled');
+        $('#dropzone-file-manager').addClass('dropzone');
+
+        $('.file-content .file-control a.btn-saved[data-target="#uploadMedia"]').on('click', function(){
+            let InputName = $(this).attr('data-name');
+            InputMediaFile = $('input[name="'+InputName+'"]');
+
+            FileContentPreview = $('.file-content.content-'+InputName+' .file-preview.preview-'+InputName);
+        })
+        Filemanager.on("success", function(file, response) {
+            if(response?.file){
+                BtnSelectFile.removeClass('disabled');
+                BtnSelectFile.removeAttr('disabled');
+                FileSelectioned = response?.file;
+
+                let count = $('#uploadMedia h6 b.manager-count').html();
+
+                if($(PanelListManager.find('.folder-file-manager-empty'))){
+                    $(PanelListManager.find('.folder-file-manager-empty')).remove();
+                }
+                PanelListManager.append('<div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">'+response?.view+'</div>');
+
+                count = parseInt((count.replace('(','')).replace(')',''));
+                $('#uploadMedia h6 b.manager-count').html('('+(count++)+')');
+                initSelected();
+            }
+        });
+
+        BtnSelectFile.on('click', function(){
+            if(FileSelectioned !== null && InputMediaFile !== null){
+                InputMediaFile.val(FileSelectioned?.idfile);
+                if(FileContentPreview){
+                    FileContentPreview.html('');
+                    FileContentPreview.append('<img src="<?=site_url("file/")?>'+FileSelectioned?.slug+'"/>');
+                }
+                $('#uploadMedia button.close[data-dismiss="modal"]').click();
+            }
+        });
+
+
+        $('button#button-file-manager-search').on('click', function () {
+            $.ajax({
+                url: '<?=site_url("dashboard/file-manager/find");?>',   // URL a la que enviar la solicitud
+                method: 'POST',      // Método HTTP (POST, GET, etc.)
+                data: { search: InputSearch.val() },          // Datos a enviar en la solicitud (opcional)
+                dataType: 'json'     // Tipo de datos esperados en la respuesta (opcional)
+            }).done((response)=>{
+                let result = (response?.view??[]);
+
+                PanelListManager.html('');
+                if(InputSearch.val() !== ""){
+                    PanelListManager.html('<div class="col-md-12 col-sm-12"><p class="text-black-50 text-left text-light">'+(result?.length === 0 ? '<?=_('No hay resultados disponibles para')?> <b>'+InputSearch.val()+'</b>': '<b>'+result?.length+'</b> <?=_('resultados encontrados para')?> <b>'+InputSearch.val()+'</b>')+'</p></div>');
+                }
+
+                result.forEach( (file) => {
+                    PanelListManager.append('<div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">'+file+'</div>');
+                });
+
+                initSelected();
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                console.error('Error en la solicitud AJAX:', textStatus, errorThrown);
+            });
+        });
+
+        $('.btn-quit-file').on('click', function(){
+            let InputName = $(this).attr('data-name');
+            $('input[name="'+InputName+'"]').val('');
+            $('.file-content.content-'+InputName+' .file-preview.preview-'+InputName).html('<p class="text-black-50"><?=_('Sin contenido.');?></p>');
+        });
+
+        initSelected();
         initSelects();
         <?php if(!empty(session()->getFlashdata('fail'))){ ?>
             swal('<?= _('Se ha producido un error'); ?>', '<?= session()->getFlashdata('fail'); ?>', "error");

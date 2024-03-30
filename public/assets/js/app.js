@@ -98,7 +98,7 @@
                     showDuration: 200,
                     hideDuration: 200
                 };
-                toastr.info('Welcome Nikos Pedlow.');
+                //toastr.info('Welcome Nikos Pedlow.');
 
                 $('.theme-switcher').removeClass('open');
             }, 500);

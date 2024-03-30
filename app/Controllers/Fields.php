@@ -268,6 +268,18 @@ class Fields extends BaseController
         return json_encode(['status' => 200, 'message'=> '¡El registro ha sido eliminado exitosamente!']);
     }
 
+    protected function head(): string
+    {
+        ob_start(); ?>
+        <style>
+            .table-responsive {
+                overflow-x: auto !important;
+            }
+        </style>
+        <?php return ob_get_clean();
+    }
+    
+    
     protected function script(): string
     {
         $Model = $this->getModel();
@@ -459,7 +471,7 @@ class Fields extends BaseController
                         placeholder: '<?=_('Seleccione');?>'
                     });
 
-                    $(tr).find('.saved-model').click((evt)=>{
+                    $($(tr).find('.saved-model')).on('click', (evt)=>{
                         //tabled.row(tr).remove().draw();
                         saved($(tr), (response)=>{
                             if(response?.row?.idfield){
@@ -483,7 +495,7 @@ class Fields extends BaseController
                             }
                         }, '');
                     });
-                    $(tr).find('.cancel-new').click((evt)=>{
+                    $($(tr).find('.cancel-new')).on('click', (evt)=>{
                         tabled.row(tr).remove().draw();
                     });
                 });

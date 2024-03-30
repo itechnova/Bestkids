@@ -135,6 +135,11 @@ if (!function_exists('form_html')) {
             $class = $form->class;
         }
 
+        $id = "";
+        if(property_exists($form, 'id')){
+            $id = ' id="'.$form->id.'"';
+        }
+
         $validator = NULL;
         if(property_exists($form, 'validator')){
             $validator = $form->validator;
@@ -144,7 +149,7 @@ if (!function_exists('form_html')) {
             }
         }
 
-        return '<form'.$method.$action.' class="'.$class.'" novalidate>'.csrf_field().$context.'</form>';
+        return '<form'.$id.$method.$action.' class="'.$class.'" novalidate>'.csrf_field().$context.'</form>';
     }
 }
 
@@ -356,6 +361,30 @@ if (!function_exists('field_html')) {
                     
                     if($field->type === 'hidden'){
                         return $context;
+                    }
+
+                    if($field->type === 'file'){
+                        $label = "";
+                        if(property_exists($field, 'label')){
+                            ob_start(); ?><h6 <?=$LabelClass;?>><?=_($field->label)?></h6><?php
+                            $label = ob_get_clean();
+                        }
+
+                        $control = '';
+                        $control = '<div style="display: flex;flex-direction: row;justify-content: center;align-items: center;align-content: center;">';
+                        $control .= '<a href="javascript:void(0)" class="btn-saved btn btn-sm btn-gradient-primary mx-1" style="color: #fff" data-name="'.$name.'" data-toggle="modal" data-target="#uploadMedia"><i class="fa fa-folder-open mr-2"></i><small>'._('Galería').'</small></a>';
+                        $control .= '<a href="javascript:void(0)" class="btn-quit-file btn-close btn btn-sm btn-gradient-dark mx-1" data-name="'.$name.'" style="color: #fff"><i class="ti-close mr-2"></i><small>'._('Cancelar').'</small></a>';
+                        $control .= '</div>';
+
+                        $contentValue = '';
+                        if($value === ''){
+                            $contentValue = '<p class="text-black-50">'._('Sin contenido.').'</p>'; 
+                        }
+
+                        $content = '<div class="file-content content-'.$name.'"><div  class="file-preview preview-'.$name.'">'.$contentValue.'</div><div class="file-control control-'.$name.'">'.$control.'</div></div>';
+                        ob_start(); ?><input id="<?=$id;?>" name="<?=$name;?>" type="hidden" value="<?=$value;?>" <?=$placeholder;?><?=$attrs;?>><?php
+                        $input = ob_get_clean();
+                        return '<div class="card border"><div class="card-body">'.$label.$content.$input.'</div></div>';
                     }
                 }
 
@@ -618,9 +647,14 @@ if (!function_exists('table_html')) {
             $td = $tabled->td;
         }
 
+        $responsive = ' responsive="1"';
+        if(property_exists($tabled, 'responsive')){
+            $responsive = ' responsive="'.$tabled->responsive.'"';
+        }
+
         ob_start(); ?>
         <div class="table-responsive"> <!-- Required for Responsive -->
-            <table id="<?=$id;?>" class="<?=$class;?>" style="width: 100%;">
+            <table id="<?=$id;?>" class="<?=$class;?>" style="width: 100%;"<?=$responsive;?>>
                 <thead>
                     <tr>
                         <?php foreach ($columns as $column) { ?>
@@ -759,7 +793,7 @@ if (!function_exists('modal_html')) {
     function modal_html($modal) {
         ob_start(); ?>
         <div class="modal fade"<?=(property_exists($modal, 'id')?' id="'.$modal->id.'"': '')?> tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-dialog modal-dialog-centered <?=(property_exists($modal, 'class')?$modal->class: '')?>" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title"><?=(property_exists($modal, 'title')?$modal->title: '')?></h5>
@@ -770,9 +804,7 @@ if (!function_exists('modal_html')) {
                     <div class="modal-body">
                         <?=(property_exists($modal, 'content')?$modal->content: '')?>
                     </div>
-                    <div class="modal-footer">
-                        <?=(property_exists($modal, 'footer')?$modal->footer: '')?>
-                    </div>
+                    <?=(property_exists($modal, 'footer')?'<div class="modal-footer">'.$modal->footer.'</div>': '')?>
                 </div>
             </div>
         </div>
