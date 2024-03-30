@@ -15,7 +15,7 @@
                             echo div_html('row');
                             echo div_html('col-xs-12 col-sm-8');
                             foreach ($model->getFields() as $field) {
-                                if($field->name !== 'status' && $field->name !== 'enabled'){
+                                if($field->name !== 'status' && $field->name !== 'enabled' && $field->type !== 'view'){
                                     echo field_html($field, $values, $validator);
                                 }
                             }
@@ -49,7 +49,7 @@
 
                             echo br_html();
                             echo br_html();
-                            echo form_button_html($model, $values, $action);
+                            echo form_button_html($model, $values, $action.'/'.$vars["code"]);
 
                             echo divEnd_html();
                             echo divEnd_html();

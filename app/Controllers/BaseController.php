@@ -154,6 +154,11 @@ abstract class BaseController extends Controller
         $this->values = $values;
     }
 
+
+    protected function addValues($values = []){
+        $this->values = array_merge($this->values, $values);
+    }
+
     protected function getValues($Model=false){
         if(!$this->getModel()){
             return false;

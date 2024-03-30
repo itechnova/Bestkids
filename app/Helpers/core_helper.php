@@ -267,6 +267,39 @@ if (!function_exists('field_dynamic_html')) {
     }
 }
 
+if (!function_exists('field_dynamic_view_html')) {
+    function field_dynamic_view_html($field, $values = [], $validator = NULL) {
+
+        if(!isset($values[$field->name])){
+            $values[$field->name] = $field->default_value;
+        }
+
+        ob_start();
+
+        echo field_html(((Object) array(
+            'name' => 'field_dynamic_'.$field->name,
+            'type' => 'hidden',
+        )), ['field_dynamic_'.$field->name=>$field->idfield]);
+
+        $field_html = array(
+            'name' => $field->name,
+            'label' => $field->label,
+            'type' => $field->typefield,
+            'placeholder'=> $field->placeholder,
+            'class'=> $field->class,
+            'options' => proccess_options($field)
+        );
+
+        if($field->required."" === '1'){
+            $field_html['required'] =  true;
+        }
+
+        echo field_view_html(((Object) $field_html), $values, $validator);
+        
+        return '<div class="col-sm-12">'.ob_get_clean().'</div>';
+    }
+}
+
 if (!function_exists('field_html')) {
     function field_html($field, $values = [], $validator = NULL) {
         $name = "";
@@ -379,6 +412,14 @@ if (!function_exists('field_html')) {
                         $contentValue = '';
                         if($value === ''){
                             $contentValue = '<p class="text-black-50">'._('Sin contenido.').'</p>'; 
+                        }else{
+                            $File = (new \App\Models\FileModel())->Exists($value);
+
+                            if(!IS_NULL($File)){
+                                $contentValue = '<img src="'.site_url('file/'.$File['slug']).'"/>';
+                            }else{
+                                $contentValue = '<p class="text-black-50">'._('Sin contenido.').'</p>'; 
+                            }
                         }
 
                         $content = '<div class="file-content content-'.$name.'"><div  class="file-preview preview-'.$name.'">'.$contentValue.'</div><div class="file-control control-'.$name.'">'.$control.'</div></div>';
@@ -539,7 +580,7 @@ if (!function_exists('field_view_html')) {
                 }
 
                 if($field->type === 'slug'){
-                    ob_start(); ?><div class="d-flex mb-0 mx-0"><label class="align-items-center col-sm-2 d-flex mb-0 mr-0 pr-0 text-linkedin text-monospace" style="z-index: 1;height: 36px;border-radius: .25rem 0 0 .25rem;border: 1px solid #e1e1e1;border-right: none;background: #f7f7f7;white-space: nowrap; overflow: hidden;text-overflow: ellipsis;"><?=site_url();?></label><input readonly id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" value="<?=$value;?>" style="border-radius: 0px .25rem .25rem 0px;" class="form-control-plaintext"<?=$placeholder;?><?=$required;?><?=$attrs;?>></div><?php
+                    ob_start(); ?><div class="d-flex mb-0 mx-0"><label class="align-items-center col-sm-12 d-flex mb-0 mr-0 pr-0 text-linkedin text-monospace" style="z-index: 1;height: 36px;border-radius: .25rem 0 0 .25rem;border: 0px solid #e1e1e1;border-right: none;white-space: nowrap; overflow: hidden;text-overflow: ellipsis;"><?=site_url($value);?></label><input readonly id="<?=$id;?>" name="<?=$name;?>" type="<?=$field->type;?>" value="<?=$value;?>" style="border-radius: 0px .25rem .25rem 0px;display:none;" class="form-control-plaintext"<?=$placeholder;?><?=$required;?><?=$attrs;?>></div><?php
                     $context = ob_get_clean();
                 }
 

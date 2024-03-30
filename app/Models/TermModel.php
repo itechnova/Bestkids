@@ -77,11 +77,22 @@ class TermModel extends Model
 
         foreach ($this->allowedFields as $field) {
             # code...
+           
             if(isset($values[$field])){
                 if($field === 'enabled'){
                     $_VALUES_[$field] = $values[$field] === "on" ? 1: 0;
                 }else{
-                    $_VALUES_[$field] = $values[$field];
+                    if($field === 'slug'){
+                        $_VALUES_[$field] = permanentLink($values[$field]!==""?$values[$field]:$values['title']);
+                    }else{
+                        $_VALUES_[$field] = $values[$field];
+                    }
+                }
+            }else{
+                if($field === 'slug' && isset($values['title'])){
+                    if($values['title']!==""){
+                        $_VALUES_[$field] = permanentLink($values['title']);
+                    }
                 }
             }
         }
@@ -91,12 +102,6 @@ class TermModel extends Model
 
     public function getValidation(){
         return [
-            'slug'=>[
-                'rules'=>'required',
-                'errors'=>[
-                    'required' => _('El enlace permanente es requerido.')
-                ]
-            ],
             'title'=>[
                 'rules'=>'required|min_length[3]|max_length[24]',
                 'errors'=>[
@@ -139,8 +144,7 @@ class TermModel extends Model
                         'name' => $field,
                         'label' => 'Enlace permanente',
                         'type' => 'slug',
-                        'placeholder'=> 'Ingresa enlace permanente',
-                        'required' => true
+                        'placeholder'=> 'Ingresa enlace permanente'                    
                     );
                     break;
                 case 'title':
@@ -225,5 +229,39 @@ class TermModel extends Model
 
     public function getMetas(){
         return new TermMetaModel();
+    }
+
+    public function getMeta($IdTerm){
+        $Model = new TermMetaModel();
+        $ModelField = new FieldModel();
+        $_VALUES_ = [];
+        foreach ($Model->where('idterm', $IdTerm)->findAll() as $Meta) {
+            $Field = $ModelField->Exists($Meta['idfield']);
+
+            if(!IS_NULL($Field)){
+                $_VALUES_[$Field['name']] = $Meta['value'];
+            }
+        }
+
+        return $_VALUES_;
+    }
+
+    public function saved($data, $IdTerm){
+        $Model = $this->getMetas();
+        foreach ($data as $key => $value) {
+            if(isset($data["field_dynamic_".$key])){
+                $IdField = $data["field_dynamic_".$key];
+                $Meta = $Model->where('idterm', $IdTerm)->where('idfield', $IdField)->first();
+                if(IS_NULL($Meta)){
+                    $Model->insert([
+                        'idterm' => $IdTerm,
+                        'idfield' => $IdField,
+                        'value' => $value
+                    ]);
+                }else{
+                    $Model->update($Meta['idmeta'], ['value' => $value]);
+                }
+            }
+        }
     }
 }

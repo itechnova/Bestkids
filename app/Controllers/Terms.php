@@ -71,15 +71,15 @@ class Terms extends BaseController
                 'content' => 'Rellena los datos del formulario.'
             )),
             'view' => ((Object) array(
-                'titlePage' => 'Taxonomía ',
-                'description' => 'Detalles de la taxonomía ',
+                'titlePage' => '',
+                'description' => 'Detalles de la ',
                 'title' => 'Taxonomía ',
-                'content' => 'Datos generales de la taxonomía '
+                'content' => 'Datos generales de la '
             )),
             'edit' => ((Object) array(
-                'titlePage' => 'Editar taxonomía',
-                'description' => 'Editar taxonomía',
-                'title' => 'Editar taxonomía',
+                'titlePage' => 'Editar ',
+                'description' => 'Editar ',
+                'title' => 'Editar ',
                 'content' => 'Cambia los datos del formulario.'
             )),
             'list' => ((Object) array(
@@ -155,14 +155,22 @@ class Terms extends BaseController
         foreach ($ListTerms as $key => $ListTerm) {
             foreach ($this->ColumnExtras as $extra) {
                 $Meta = $this->getModel()->getMetas();
-                $Value = $Meta->where('idterm', $ListTerm['idterm'])->where('idfield', $ListTerm['idterm'])->first();
-                $ListTerms[$key][$extra['idfield']] = $Value;
+                $Value = $Meta->where('idterm', $ListTerm['idterm'])->where('idfield', $extra['idfield'])->first();
+                $ListTerms[$key]['th'.$extra['idfield']] = $Value;
             }            
         }
         return $ListTerms;
     }
 
     protected function td($tr, $td, $column){
+
+
+        if(isset($tr['th'.$column])){
+            if(!IS_NULL($tr['th'.$column])){
+                return $tr['th'.$column]['value'];
+            }
+        }
+
         if($column === 'enabled'){
             return intval($td) === 1 ? _('Si'):_('No');
         }
@@ -182,7 +190,6 @@ class Terms extends BaseController
             return $OPTION[$td];
         }
 
-
         if($column === 'ACTION'){
             $ModelID = $this->getModel()->getID($tr);
 
@@ -193,12 +200,11 @@ class Terms extends BaseController
                         <span class="mr-2"><?=_('Opción');?></span>
                     </button>
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="<?=site_url($this->slug.'/view/'.$ModelID);?>"><i class="fa fa-eye mr-2"></i><?=_('Vér');?></a>
-                        <a class="dropdown-item" href="<?=site_url($this->slug.'/edit/'.$ModelID);?>"><i class="fa fa-pencil-square-o mr-2"></i><?=_('Editar');?></a>
-                        <a class="dropdown-item" href="<?=site_url('dashboard/fields/'.$ModelID);?>"><i class="fa fa-cubes mr-2"></i><?=_('Campos');?></a>
+                        <a class="dropdown-item" href="<?=site_url($this->slug.'/'.$this->Taxonomy['code'].'/view/'.$ModelID);?>"><i class="fa fa-eye mr-2"></i><?=_('Vér');?></a>
+                        <a class="dropdown-item" href="<?=site_url($this->slug.'/'.$this->Taxonomy['code'].'/edit/'.$ModelID);?>"><i class="fa fa-pencil-square-o mr-2"></i><?=_('Editar');?></a>
                         
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="<?=site_url($this->slug.'/trash/'.$ModelID);?>"><i class="fa fa-trash mr-2"></i><?=_('Eliminar');?></a>
+                        <a class="dropdown-item" href="<?=site_url($this->slug.'/'.$this->Taxonomy['code'].'/trash/'.$ModelID);?>"><i class="fa fa-trash mr-2"></i><?=_('Eliminar');?></a>
                     </div>
                 </div>
             </div>
@@ -218,7 +224,6 @@ class Terms extends BaseController
         }
         return !is_null($this->Taxonomy);
     }
-
 
     public function index($code="")
     {
@@ -255,9 +260,99 @@ class Terms extends BaseController
             $this->addBreadcrumb($this->viewContent()->list->titlePage.$this->Taxonomy['title'], site_url($this->slug.'s/'.$this->Taxonomy['code']));
             $this->addBreadcrumb($this->titlePage);
             $this->withLayout = 'new';
+            $this->values['idtaxonomy'] = $this->Taxonomy['idtaxonomy'];
             return $this->View($this->viewEdit, [
                 'extras' => $this->ColumnFields
             ]);
+        }
+
+        return redirect()->to('dashboard/taxonomys')->with('warning', '¡La taxonomía no existe!');
+    }
+
+    public function edit($code, $id="")
+    {
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
+
+        if($this->allowedTaxonomy($code)){
+            $this->titlePage = $this->viewContent()->edit->titlePage.$this->Taxonomy['title'];
+            $this->description = $this->viewContent()->edit->description.$this->Taxonomy['title'];
+            $this->setContent($this->viewContent()->edit->title.$this->Taxonomy['title'], $this->viewContent()->edit->content);
+            unset($this->breadcrumbs[1]);
+            
+            $this->addBreadcrumb($this->viewContent()->list->titlePage.$this->Taxonomy['title'], site_url($this->slug.'s/'.$this->Taxonomy['code']));
+            $this->addBreadcrumb($this->titlePage);
+
+            $Model = $this->getModel()->Exists($id);
+            
+            if(strlen(trim($id))===0 || is_null($Model)){
+                return redirect()->to($this->slug.'s/'.$this->Taxonomy['code'])->with('warning', '¡Este registro no existe!');
+            }
+
+            $this->setValues($Model);
+            $this->addValues($this->getModel()->getMeta($Model['idterm']));
+            $this->withLayout = 'edit';
+            return $this->View($this->viewEdit, [
+                'extras' => $this->ColumnFields
+            ]);
+        }
+
+        return redirect()->to('dashboard/taxonomys')->with('warning', '¡La taxonomía no existe!');
+    }
+
+    public function details($code, $id="")
+    {
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
+
+        if($this->allowedTaxonomy($code)){
+            $Model = $this->getModel()->Exists($id);
+            
+            if(strlen(trim($id))===0 || is_null($Model)){
+                return redirect()->to($this->slug.'s/'.$this->Taxonomy['code'])->with('warning', '¡Este registro no existe!');
+            }
+
+            $description = isset($Model[$this->getModel()->description()]) ? $Model[$this->getModel()->description()]: "";
+
+            $this->titlePage = $this->viewContent()->view->titlePage.$this->Taxonomy['title'].' '.$description;
+            $this->description = $this->viewContent()->view->description.$this->Taxonomy['title'].' '.$description;
+            $this->setContent($this->viewContent()->view->title.$this->Taxonomy['title'].' '.$description, $this->viewContent()->view->content.$description);
+            unset($this->breadcrumbs[1]);
+            
+            $this->addBreadcrumb($this->viewContent()->list->titlePage.$this->Taxonomy['title'], site_url($this->slug.'s/'.$this->Taxonomy['code']));
+            $this->addBreadcrumb($this->titlePage);
+
+            $this->setValues($Model);
+            $this->addValues($this->getModel()->getMeta($Model['idterm']));
+
+            $this->withLayout = 'view';
+
+            return $this->View($this->viewView, [
+                'extras' => $this->ColumnFields
+            ]);
+        }
+
+        return redirect()->to('dashboard/taxonomys')->with('warning', '¡La taxonomía no existe!');
+    }
+
+    public function trash($code, $id="")
+    {
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
+
+        if($this->allowedTaxonomy($code)){
+            $Model = $this->getModel();
+            $Data = $Model->Exists($id);
+            if(strlen(trim($id))===0 || is_null($Data)){
+                return redirect()->to($this->slug.'s/'.$this->Taxonomy['code'])->with('warning', '¡Este registro no existe!');
+            }
+
+            $this->setValues($Data);
+            $Model->delete($this->getID());
+            return redirect()->to($this->slug.'s/'.$this->Taxonomy['code'])->with('success', _('¡El registro ha sido eliminado exitosamente!'));
         }
 
         return redirect()->to('dashboard/taxonomys')->with('warning', '¡La taxonomía no existe!');
@@ -281,4 +376,30 @@ class Terms extends BaseController
         <?php return ob_get_clean();
     }
 
+    public function saved(){
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
+
+        $Taxonomy = (new \App\Models\TaxonomyModel())->Exists($this->request->getPost('idtaxonomy'));
+        if(!IS_NULL($Taxonomy)){
+            if($this->validate($this->getModel()->getValidation())){
+                $data = ($this->getValues());
+
+                $Model = $this->getModel();
+                $Saved = ($this->isNew() && !$this->getID()) ? $Model->insert($data) : $Model->update($this->getID(), $data);
+                if($Saved){
+                    $ModelId = $this->getID();
+                    if($this->isNew() && !$this->getID()){
+                        $ModelId = $Model->getInsertID();
+                    }
+                    $Model->saved($this->request->getPost(), $ModelId);
+                    return redirect()->to($this->slug.'/'.$Taxonomy['code'].'/edit/'.$ModelId)->with('success', _('¡Los datos se han guardado correctamente!'));
+                }
+            }
+        
+            return ($this->isNew() && !$this->getID()) ? $this->new($Taxonomy['code']): $this->edit($Taxonomy['code'], $this->getID());
+        }
+        return redirect()->to('dashboard/taxonomys')->with('warning', '¡La taxonomía no existe!');
+    }
 }
