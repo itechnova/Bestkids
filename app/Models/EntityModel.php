@@ -4,17 +4,17 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class TaxonomyModel extends Model
+class EntityModel extends Model
 {
-    protected $table      = 'taxonomys';
-    protected $primaryKey = 'idtaxonomy';
+    protected $table      = 'entitys';
+    protected $primaryKey = 'identity';
 
     protected $useAutoIncrement = true;
 
     protected $returnType     = 'array';
     protected $useSoftDeletes = true;
 
-    protected $allowedFields = ['code', 'type', 'title', 'content', 'view', 'level', 'status', 'enabled'];
+    protected $allowedFields = ['idtaxonomy', 'idaccount', 'title', 'slug', 'content', 'parent', 'status', 'enabled'];
 
     protected bool $allowEmptyInserts = false;
 
@@ -52,10 +52,12 @@ class TaxonomyModel extends Model
 
     public function Exists($Id){
         return $this->where($this->primaryKey, $Id)->first();
+
     }
 
-    public function ExistsByCode($code, $type){
-        return $this->where('code', $code)->where('type', $type)->first();
+    public function ExistsBySLug($slug){
+        return $this->where('slug', $slug)->first();
+
     }
 
     public function getID($values){
@@ -73,13 +75,36 @@ class TaxonomyModel extends Model
             $_VALUES_[$this->primaryKey] = $values[$this->primaryKey];
         }
 
+        $User = User();
+
         foreach ($this->allowedFields as $field) {
             # code...
+           
             if(isset($values[$field])){
                 if($field === 'enabled'){
                     $_VALUES_[$field] = $values[$field] === "on" ? 1: 0;
                 }else{
-                    $_VALUES_[$field] = $values[$field];
+                    if($field === 'slug'){
+                        $_VALUES_[$field] = permanentLink($values[$field]!==""?$values[$field]:$values['title']);
+                    }else{
+                        if($field === 'idaccount' && $User && $values[$field] === ""){
+                            $_VALUES_[$field] = $User->idaccount;
+                        }else{
+                            $_VALUES_[$field] = $values[$field];
+                        }
+                    }
+                }
+            }else{
+                if($field === 'slug' && isset($values['title'])){
+                    if($values['title']!==""){
+                        $_VALUES_[$field] = permanentLink($values['title']);
+                    }
+                }
+
+                if($field === 'idaccount'){
+                    if($User){
+                        $_VALUES_[$field] = $User->idaccount;
+                    }
                 }
             }
         }
@@ -89,42 +114,12 @@ class TaxonomyModel extends Model
 
     public function getValidation(){
         return [
-            'type'=>[
-                'rules'=>'required',
-                'errors'=>[
-                    'required' => _('Tipo es requerido.')
-                ]
-            ],
-            'view'=>[
-                'rules'=>'required',
-                'errors'=>[
-                    'required' => _('Vista es requerido.')
-                ]
-            ],
             'title'=>[
                 'rules'=>'required|min_length[3]|max_length[24]',
                 'errors'=>[
-                    'required' => _('Nombre es requerido.'),
-                    'min_length' => _('Nombre debe tener al menos 3 caracteres de longitud.'),
-                    'max_length' => _('Nombre no debe tener más de 24 caracteres de longitud.')
-                ]
-            ],
-            'code'=>[
-                'rules'=>'required|min_length[3]|max_length[24]',//is_unique[taxonomys.code]
-                'errors'=>[
-                    'required' => _('Código es requerido.'),
-                    'min_length' => _('Código debe tener al menos 3 caracteres de longitud.'),
-                    'max_length' => _('Código no debe tener más de 24 caracteres de longitud.'),
-                    //'is_unique' => _('El correo ya está registrado.')
-                ]
-            ],
-            'level' => [
-                'rules' => 'required|numeric|greater_than_equal_to[1]|less_than_equal_to[100]',
-                'errors' => [
-                    'required' => _('El nivel es requerido.'),
-                    'numeric' => _('El nivel debe ser un número.'),
-                    'greater_than_equal_to' => _('El nivel debe ser igual o mayor que 1.'),
-                    'less_than_equal_to' => _('El nivel debe ser igual o menor que 100.')
+                    'required' => _('Título es requerido.'),
+                    'min_length' => _('Título debe tener al menos 3 caracteres de longitud.'),
+                    'max_length' => _('Título no debe tener más de 24 caracteres de longitud.')
                 ]
             ],
             'status' => [
@@ -149,51 +144,28 @@ class TaxonomyModel extends Model
         foreach ($this->allowedFields as $field) {
             # code...
             switch ($field) {
-                case 'type':
-                    # code...
-                    $AllFields[] = (Object) array(
-                        'name' => $field,
-                        'label' => 'Tipo',
-                        'type' => 'select',
-                        'options'=>[
-                            'terms'=>_('Categoría'),
-                            'entity'=>_('Entidad'),
-                        ],
-                        'placeholder'=> 'Seleccione',
-                        'required' => true
+                case 'idtaxonomy': 
+                    $AllFields[$field] = (Object) array(
+                        'name' => 'idtaxonomy',
+                        'type' => 'hidden'
                     );
                     break;
-                case 'view':
+                case 'slug':
                     # code...
                     $AllFields[] = (Object) array(
                         'name' => $field,
-                        'label' => 'Vista',
-                        'type' => 'select',
-                        'options'=>[
-                            'list'=>_('Lista'),
-                            'grid'=>_('Cuadriculas'),
-                        ],
-                        'placeholder'=> 'Seleccione',
-                        'required' => true
-                    );
-                    break;
-                case 'code':
-                    # code...
-                    $AllFields[] = (Object) array(
-                        'name' => $field,
-                        'label' => 'Código',
-                        'type' => 'text',
-                        'placeholder'=> 'Ingresa código',
-                        'required' => true
+                        'label' => 'Enlace permanente',
+                        'type' => 'slug',
+                        'placeholder'=> 'Ingresa enlace permanente'                    
                     );
                     break;
                 case 'title':
                     # code...
                     $AllFields[] = (Object) array(
                         'name' => $field,
-                        'label' => 'Nombre',
+                        'label' => 'Título',
                         'type' => 'text',
-                        'placeholder'=> 'Ingresa nombre',
+                        'placeholder'=> 'Ingresa título',
                         'required' => true
                     );
                     break;
@@ -204,16 +176,6 @@ class TaxonomyModel extends Model
                         'label' => 'Descripción',
                         'type' => 'textarea',
                         'placeholder'=> 'Ingresa descripción',
-                    );
-                    break;
-                case 'level':
-                    # code...
-                    $AllFields[] = (Object) array(
-                        'name' => $field,
-                        'label' => 'Nivel de acceso',
-                        'type' => 'number',
-                        'placeholder'=> 'Ingresa nivel de acceso',
-                        'required' => true
                     );
                     break;
                 case 'status':
@@ -239,14 +201,21 @@ class TaxonomyModel extends Model
                     break;
                 default:
                     # code...
-                    $AllFields[] = (Object) array(
+                    /*$AllFields[] = (Object) array(
                         'name' => $field,
                         'type' => 'text'
-                    );
+                    );*/
                     break;
             }
             
         }
+
+        $AllFields[] = (Object) array(
+            'name' => 'idaccount',
+            'label' => 'Autor',
+            'type' => 'view',
+            'required' => false
+        );
 
         $AllFields[] = (Object) array(
             'name' => $this->createdField,
@@ -277,15 +246,43 @@ class TaxonomyModel extends Model
         return true;
     }
 
-    public function getFieldsExtras($idtaxonomy, $Filters = []){
-        $Fields = new FieldModel();
+    public function getMetas(){
+        return new EntityMetaModel();
+    }
 
-        $Fields->where('idtaxonomy', $idtaxonomy);
-        foreach ($Filters as $key => $filter) {
-            # code...
-            $Fields->where($key, $filter);
+    public function getMeta($IdEntity){
+        $Model = new EntityMetaModel();
+        $ModelField = new FieldModel();
+        $_VALUES_ = [];
+        foreach ($Model->where('identity', $IdEntity)->findAll() as $Meta) {
+            $Field = $ModelField->Exists($Meta['idfield']);
+
+            if(!IS_NULL($Field)){
+                $_VALUES_[$Field['name']] = $Meta['value'];
+            }
         }
 
-        return $Fields->findAll();
+        return $_VALUES_;
+    }
+
+    public function saved($data, $IdEntity){
+        $Model = $this->getMetas();
+        foreach ($data as $key => $value) {
+            if(isset($data["field_dynamic_".$key])){
+                $IdField = $data["field_dynamic_".$key];
+                $Meta = $Model->where('identity', $IdEntity)->where('idfield', $IdField)->first();
+                if(IS_NULL($Meta)){
+                    $User = User();
+                    $Model->insert([
+                        'identity' => $IdEntity,
+                        'idaccount' => $User->idaccount,
+                        'idfield' => $IdField,
+                        'value' => $value
+                    ]);
+                }else{
+                    $Model->update($Meta['idmeta'], ['value' => $value]);
+                }
+            }
+        }
     }
 }

@@ -98,5 +98,32 @@ $routes->get('/'.$ROUTE_DASHBOARD.'/term/(:alphanum)/trash/(:alphanum)', 'Terms:
 
 $routes->post('/'.$ROUTE_DASHBOARD.'/term/saved', 'Terms::saved');
 
+/* ENTITYS */
+$routes->get('/'.$ROUTE_DASHBOARD.'/entitys/(:alphanum)', 'Entitys::index/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/entity/(:alphanum)/new', 'Entitys::new/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/entity/(:alphanum)/view/(:alphanum)', 'Entitys::details/$1/$2');
+$routes->get('/'.$ROUTE_DASHBOARD.'/entity/(:alphanum)/edit/(:alphanum)', 'Entitys::edit/$1/$2');
+$routes->get('/'.$ROUTE_DASHBOARD.'/entity/(:alphanum)/trash/(:alphanum)', 'Entitys::trash/$1/$2');
+
+$routes->post('/'.$ROUTE_DASHBOARD.'/entity/saved', 'Entitys::saved');
+
+/* VIEWS */
+$routes->get('/'.$ROUTE_DASHBOARD.'/views', 'Views::index');
+$routes->get('/'.$ROUTE_DASHBOARD.'/view/new', 'Views::new');
+$routes->get('/'.$ROUTE_DASHBOARD.'/view/view/(:alphanum)', 'Views::details/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/view/edit/(:alphanum)', 'Views::edit/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/view/trash/(:alphanum)', 'Views::trash/$1');
+
+$routes->post('/'.$ROUTE_DASHBOARD.'/view/saved', 'Views::saved');
+
+/* TABVIEWS */
+$routes->get('/'.$ROUTE_DASHBOARD.'/tabviews/(:alphanum)', 'Tabviews::index/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/tabview/new/(:alphanum)', 'Tabviews::new/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/tabview/view/(:alphanum)', 'Tabviews::details/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/tabview/edit/(:alphanum)', 'Tabviews::edit/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/tabview/trash/(:alphanum)', 'Tabviews::trash/$1');
+
+$routes->post('/'.$ROUTE_DASHBOARD.'/tabview/saved', 'Tabviews::saved');
+
 //ahora hay que crear los fields de taxonomias con la estructura de menu
 //adicional hay que crear terms y entitys sus respectivas tablas metas

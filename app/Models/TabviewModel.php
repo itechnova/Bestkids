@@ -4,17 +4,17 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class TaxonomyModel extends Model
+class TabviewModel extends Model
 {
-    protected $table      = 'taxonomys';
-    protected $primaryKey = 'idtaxonomy';
+    protected $table      = 'tabviews';
+    protected $primaryKey = 'idtab';
 
     protected $useAutoIncrement = true;
 
     protected $returnType     = 'array';
     protected $useSoftDeletes = true;
 
-    protected $allowedFields = ['code', 'type', 'title', 'content', 'view', 'level', 'status', 'enabled'];
+    protected $allowedFields = ['idview', 'idtaxonomy', 'icon', 'title', 'content', 'level', 'type', 'action', 'view_link', 'view_photo', 'view_title', 'view_content', 'view_author', 'view_created_at', 'enabled'];
 
     protected bool $allowEmptyInserts = false;
 
@@ -45,17 +45,14 @@ class TaxonomyModel extends Model
     public function primaryKey() {
         return $this->primaryKey;
     }
-    
+
     public function description() {
         return 'title';
     }
 
     public function Exists($Id){
         return $this->where($this->primaryKey, $Id)->first();
-    }
 
-    public function ExistsByCode($code, $type){
-        return $this->where('code', $code)->where('type', $type)->first();
     }
 
     public function getID($values){
@@ -89,18 +86,6 @@ class TaxonomyModel extends Model
 
     public function getValidation(){
         return [
-            'type'=>[
-                'rules'=>'required',
-                'errors'=>[
-                    'required' => _('Tipo es requerido.')
-                ]
-            ],
-            'view'=>[
-                'rules'=>'required',
-                'errors'=>[
-                    'required' => _('Vista es requerido.')
-                ]
-            ],
             'title'=>[
                 'rules'=>'required|min_length[3]|max_length[24]',
                 'errors'=>[
@@ -109,28 +94,19 @@ class TaxonomyModel extends Model
                     'max_length' => _('Nombre no debe tener más de 24 caracteres de longitud.')
                 ]
             ],
-            'code'=>[
-                'rules'=>'required|min_length[3]|max_length[24]',//is_unique[taxonomys.code]
+            'type'=>[
+                'rules'=>'required',
                 'errors'=>[
-                    'required' => _('Código es requerido.'),
-                    'min_length' => _('Código debe tener al menos 3 caracteres de longitud.'),
-                    'max_length' => _('Código no debe tener más de 24 caracteres de longitud.'),
-                    //'is_unique' => _('El correo ya está registrado.')
+                    'required' => _('Tipo es requerido.')
                 ]
             ],
-            'level' => [
+            'level'=>[
                 'rules' => 'required|numeric|greater_than_equal_to[1]|less_than_equal_to[100]',
                 'errors' => [
                     'required' => _('El nivel es requerido.'),
                     'numeric' => _('El nivel debe ser un número.'),
                     'greater_than_equal_to' => _('El nivel debe ser igual o mayor que 1.'),
                     'less_than_equal_to' => _('El nivel debe ser igual o menor que 100.')
-                ]
-            ],
-            'status' => [
-                'rules' => 'required',
-                'errors' => [
-                    'required' => _('El estatus es requerido.')
                 ]
             ]
         ];
@@ -146,45 +122,38 @@ class TaxonomyModel extends Model
             'type' => 'hidden'
         );
 
+        $Taxonomys = [];
+        
+        foreach ((new TaxonomyModel())->where('enabled', 1)->findAll() as $Taxonomy) {
+            # code...
+            $Taxonomys[$Taxonomy['idtaxonomy']] = $Taxonomy['title'];
+        }
         foreach ($this->allowedFields as $field) {
             # code...
             switch ($field) {
-                case 'type':
-                    # code...
-                    $AllFields[] = (Object) array(
-                        'name' => $field,
-                        'label' => 'Tipo',
-                        'type' => 'select',
-                        'options'=>[
-                            'terms'=>_('Categoría'),
-                            'entity'=>_('Entidad'),
-                        ],
-                        'placeholder'=> 'Seleccione',
-                        'required' => true
+                case 'idview': 
+                    $AllFields[$field] = (Object) array(
+                        'name' => 'idview',
+                        'type' => 'hidden'
                     );
                     break;
-                case 'view':
-                    # code...
-                    $AllFields[] = (Object) array(
+                case 'idtaxonomy': 
+                    $AllFields[$field] = (Object) array(
                         'name' => $field,
-                        'label' => 'Vista',
+                        'label' => 'Taxonomía',
                         'type' => 'select',
-                        'options'=>[
-                            'list'=>_('Lista'),
-                            'grid'=>_('Cuadriculas'),
-                        ],
-                        'placeholder'=> 'Seleccione',
-                        'required' => true
+                        'options'=> $Taxonomys,
+                        'placeholder'=> 'Seleccione'
                     );
                     break;
-                case 'code':
+                case 'icon':
                     # code...
-                    $AllFields[] = (Object) array(
+                    $AllFields[$field] = (Object) array(
                         'name' => $field,
-                        'label' => 'Código',
-                        'type' => 'text',
-                        'placeholder'=> 'Ingresa código',
-                        'required' => true
+                        'label' => 'Icono',
+                        'type' => 'select',
+                        'options'=> \App\Libraries\Feather::getNames(),
+                        'placeholder'=> 'Seleccione'
                     );
                     break;
                 case 'title':
@@ -210,24 +179,84 @@ class TaxonomyModel extends Model
                     # code...
                     $AllFields[] = (Object) array(
                         'name' => $field,
-                        'label' => 'Nivel de acceso',
+                        'label' => 'Nivel del rol',
                         'type' => 'number',
-                        'placeholder'=> 'Ingresa nivel de acceso',
+                        'placeholder'=> 'Ingresa nivel del rol',
                         'required' => true
                     );
                     break;
-                case 'status':
+                case 'type':
                     # code...
-                    $AllFields[$field] = (Object) array(
+                    $AllFields[] = (Object) array(
                         'name' => $field,
-                        'label' => 'Estatus',
+                        'label' => 'Tipo',
                         'type' => 'select',
                         'options'=>[
-                            'publish'=>_('Público'),
-                            'private'=>_('Privado'),
+                            'list'=>_('Lista'),
+                            'grid'=>_('Cuadricula'),
                         ],
                         'placeholder'=> 'Seleccione',
                         'required' => true
+                    );
+                    break;
+                case 'action':
+                    # code...
+                    $AllFields[] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Acción nuevo',
+                        'type' => 'text',
+                        'placeholder'=> 'Ingresa acción nuevo',
+                    );
+                    break;
+                case 'view_photo':
+                    # code...
+                    $AllFields[] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Columna medio',
+                        'type' => 'text',
+                        'placeholder'=> 'Ingresa el nombre'
+                    );
+                    break;
+                case 'view_title':
+                    # code...
+                    $AllFields[] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Columna título',
+                        'type' => 'text',
+                        'placeholder'=> 'Ingresa el nombre',
+                        'required' => true
+                    );
+                    break;
+                case 'view_content':
+                    # code...
+                    $AllFields[] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Columna descripción',
+                        'type' => 'text',
+                        'placeholder'=> 'Ingresa el nombre'
+                    );
+                    break;
+                case 'view_author':
+                    $AllFields[] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Vér autor',
+                        'type' => 'switch'                    
+                    );
+                    break;
+                case 'view_created_at':
+                    $AllFields[] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Vér fecha',
+                        'type' => 'switch'                    
+                    );
+                    break;
+                case 'view_link':
+                    # code...
+                    $AllFields[] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Enlace',
+                        'type' => 'text',
+                        'placeholder'=> 'Ingresa el nombre'
                     );
                     break;
                 case 'enabled':
@@ -275,17 +304,5 @@ class TaxonomyModel extends Model
         }
 
         return true;
-    }
-
-    public function getFieldsExtras($idtaxonomy, $Filters = []){
-        $Fields = new FieldModel();
-
-        $Fields->where('idtaxonomy', $idtaxonomy);
-        foreach ($Filters as $key => $filter) {
-            # code...
-            $Fields->where($key, $filter);
-        }
-
-        return $Fields->findAll();
     }
 }

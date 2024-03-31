@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-class Terms extends BaseController
+class Entitys extends BaseController
 {
 
     /**
@@ -10,42 +10,42 @@ class Terms extends BaseController
      *
      * @var string
      */
-    protected $title = 'Terms';
+    protected $title = 'Entitys';
         
     /**
      * An string of helpers to be loaded automatically upon
      *
      * @var string
      */
-    protected $slug = 'dashboard/term';
+    protected $slug = 'dashboard/entity';
 
     /**
      * An string of helpers to be loaded automatically upon
      *
      * @var string
      */
-    protected $viewView = 'term/view';
+    protected $viewView = 'entity/view';
 
     /**
      * An string of helpers to be loaded automatically upon
      *
      * @var string
      */
-    protected $viewEdit = 'term/edit';
+    protected $viewEdit = 'entity/edit';
 
     /**
      * An string of helpers to be loaded automatically upon
      *
      * @var string
      */
-    protected $viewList = 'term/list';
+    protected $viewList = 'entity/list';
 
     /**
      * An string of helpers to be loaded automatically upon
      *
      * @var string
      */
-    protected $viewFilter = 'term/filter';
+    protected $viewFilter = 'entity/filter';
 
     protected $Taxonomy = null;
 
@@ -73,7 +73,7 @@ class Terms extends BaseController
             'view' => ((Object) array(
                 'titlePage' => '',
                 'description' => 'Detalles de la ',
-                'title' => '',
+                'title' => 'Taxonomía ',
                 'content' => 'Datos generales de la '
             )),
             'edit' => ((Object) array(
@@ -101,7 +101,7 @@ class Terms extends BaseController
         $Columns = [];
         
         $Columns[] = ((Object) array(
-            'key' => 'idterm',
+            'key' => 'identity',
             'label' => _('ID')
         ));
         $Columns[] = ((Object) array(
@@ -142,7 +142,7 @@ class Terms extends BaseController
     }
 
     protected function getModel(){
-        return new \App\Models\TermModel();
+        return new \App\Models\EntityModel();
     }
 
     protected function FILTER(){
@@ -155,7 +155,7 @@ class Terms extends BaseController
         foreach ($ListTerms as $key => $ListTerm) {
             foreach ($this->ColumnExtras as $extra) {
                 $Meta = $this->getModel()->getMetas();
-                $Value = $Meta->where('idterm', $ListTerm['idterm'])->where('idfield', $extra['idfield'])->first();
+                $Value = $Meta->where('identity', $ListTerm['identity'])->where('idfield', $extra['idfield'])->first();
                 $ListTerms[$key]['th'.$extra['idfield']] = $Value;
             }            
         }
@@ -216,7 +216,7 @@ class Terms extends BaseController
 
     protected function allowedTaxonomy($code){
         $Taxonomy = new \App\Models\TaxonomyModel();
-        $this->Taxonomy = $Taxonomy->ExistsByCode($code, 'terms');
+        $this->Taxonomy = $Taxonomy->ExistsByCode($code, 'entity');
         $this->vars = $this->Taxonomy;
         if(!is_null($this->Taxonomy)){
             $this->ColumnExtras = $Taxonomy->getFieldsExtras($this->Taxonomy['idtaxonomy'], ['enabled'=>'1', 'tabled'=> '1']);
@@ -276,6 +276,13 @@ class Terms extends BaseController
         }
 
         if($this->allowedTaxonomy($code)){
+            $this->titlePage = $this->viewContent()->edit->titlePage.$this->Taxonomy['title'];
+            $this->description = $this->viewContent()->edit->description.$this->Taxonomy['title'];
+            $this->setContent($this->viewContent()->edit->title.$this->Taxonomy['title'], $this->viewContent()->edit->content);
+            unset($this->breadcrumbs[1]);
+            
+            $this->addBreadcrumb($this->viewContent()->list->titlePage.$this->Taxonomy['title'], site_url($this->slug.'s/'.$this->Taxonomy['code']));
+            $this->addBreadcrumb($this->titlePage);
 
             $Model = $this->getModel()->Exists($id);
             
@@ -283,18 +290,8 @@ class Terms extends BaseController
                 return redirect()->to($this->slug.'s/'.$this->Taxonomy['code'])->with('warning', '¡Este registro no existe!');
             }
 
-            $this->titlePage = $this->viewContent()->edit->titlePage.$Model['title'];
-            $this->description = $this->viewContent()->edit->description.$Model['title'];
-            $this->setContent($this->viewContent()->edit->title.$Model['title'], $this->viewContent()->edit->content);
-            unset($this->breadcrumbs[1]);
-            
-            $this->addBreadcrumb($this->viewContent()->list->titlePage.$this->Taxonomy['title'], site_url($this->slug.'s/'.$this->Taxonomy['code']));
-            $this->addBreadcrumb($this->titlePage);
-
-            
-
             $this->setValues($Model);
-            $this->addValues($this->getModel()->getMeta($Model['idterm']));
+            $this->addValues($this->getModel()->getMeta($Model['identity']));
             $this->withLayout = 'edit';
             return $this->View($this->viewEdit, [
                 'extras' => $this->ColumnFields
@@ -319,16 +316,16 @@ class Terms extends BaseController
 
             $description = isset($Model[$this->getModel()->description()]) ? $Model[$this->getModel()->description()]: "";
 
-            $this->titlePage = $this->viewContent()->view->titlePage.' '.$description;
-            $this->description = $this->viewContent()->view->description.' '.$description;
-            $this->setContent($this->viewContent()->view->title.' '.$description, $this->viewContent()->view->content.$description);
+            $this->titlePage = $this->viewContent()->view->titlePage.$this->Taxonomy['title'].' '.$description;
+            $this->description = $this->viewContent()->view->description.$this->Taxonomy['title'].' '.$description;
+            $this->setContent($this->viewContent()->view->title.$this->Taxonomy['title'].' '.$description, $this->viewContent()->view->content.$description);
             unset($this->breadcrumbs[1]);
             
             $this->addBreadcrumb($this->viewContent()->list->titlePage.$this->Taxonomy['title'], site_url($this->slug.'s/'.$this->Taxonomy['code']));
             $this->addBreadcrumb($this->titlePage);
 
             $this->setValues($Model);
-            $this->addValues($this->getModel()->getMeta($Model['idterm']));
+            $this->addValues($this->getModel()->getMeta($Model['identity']));
 
             $this->withLayout = 'view';
 
