@@ -966,3 +966,101 @@ if (!function_exists('deleteAll')) {
         rmdir($directorio);
     }
 }
+
+if(!function_exists('view_card')){
+    function view_card($item){
+        $File = NULL;
+        foreach ($item->taxonomy->fields as $field) {
+            if(isset($item->metas[$field['name']])){
+                if($field['typefield'] === "file"){
+                    $File = (new \App\Models\FileModel())->Exists($item->metas[$field['name']]);
+                    if(!IS_NULL($File)){
+                        $File = (Object) $File;
+                    }
+                }
+            }
+        }
+        ob_start();
+        ?>
+        <a href="">
+            <div class="card cursor-pointer border">
+                <?php if(!IS_NULL($File)){ ?>
+                    <img src="<?=!IS_NULL($File) ? site_url('/file/'.$File->slug): "";?>" class="card-img-top" alt="image" style="max-height: 297px;object-fit: cover;">
+                <?php } else { ?>
+                    <div style="background: #1a1a1aa3;border-radius: 8px 8px 0 0;" class="p-50 text-center"><i class="fa fa-image" style="font-size: 7rem;color: #ffff;"></i></div>
+                <?php } ?>
+                <div class="card-body">
+                    <h6 class="card-title text-primary mb-2"><?=$item->title?></h6>
+                    <!--p class="card-text">This is a wider card with supporting text below as a natural lead-in to
+                                        additional content. This content is a little bit longer.</p-->
+                    <p class="card-text">
+                        <small class="text-muted"><?=agoDate($item->updated_at);?></small>
+                    </p>
+                </div>
+            </div>
+        </a>
+        <?php return ob_get_clean();
+    }
+}
+
+if(!function_exists('view_card_new')){
+    function view_card_new($panel){
+        //var_dump($panel);
+        ob_start();
+        ?>
+        <a href="<?=site_url($panel->action);?>">
+            <div class="card cursor-pointer border">
+                <div style="display: flex;background: #1a1a1a59;border-radius: 8px 8px 0 0;height: 297px;align-content: center;justify-content: center;align-items: center;" class="p-50 text-center"><i class="fa fa-plus-circle" style="font-size: 12rem;color: #ffff;"></i></div>
+                <div class="card-body">
+                    <h6 class="card-title text-center text-primary mb-2"><?=_('Nuevo');?></h6>
+                    <!--p class="card-text">This is a wider card with supporting text below as a natural lead-in to
+                                        additional content. This content is a little bit longer.</p-->
+                    <p class="card-text text-center">
+                        <small class="text-muted"><?= $panel->taxonomy->title;?></small>
+                    </p>
+                </div>
+            </div>
+        </a>
+        <?php return ob_get_clean();
+    }
+}
+
+if(!function_exists('agoDate')){
+    function agoDate($updated_at){
+        // Fecha y hora actual
+        $current_time = new DateTime();
+
+        // Fecha y hora de la última actualización
+        $updated_at_datetime = new DateTime($updated_at);
+
+        // Calcula la diferencia entre la fecha actual y la fecha de la última actualización
+        $time_diff = $current_time->diff($updated_at_datetime);
+
+        // Genera el mensaje de tiempo transcurrido
+        $time_message = '';
+
+        if ($time_diff->s > 0) {
+            $time_message = $time_diff->s . ' segundo' . ($time_diff->s > 1 ? 's' : '') . '.';
+        }
+        if ($time_diff->i > 0) {
+            $time_message = $time_diff->i . ' minuto' . ($time_diff->i > 1 ? 's' : '') . '.';
+        }
+        if ($time_diff->h > 0) {
+            $time_message = $time_diff->h . ' hora' . ($time_diff->h > 1 ? 's' : '') . '.';
+        }
+        if ($time_diff->d > 0) {
+            $time_message = $time_diff->d . ' día' . ($time_diff->d > 1 ? 's' : '') . '.';
+        }
+        if ($time_diff->m > 0) {
+            $time_message = $time_diff->m . ' mes' . ($time_diff->m > 1 ? 'es' : '') . '.';
+        }
+        if ($time_diff->y > 0) {
+            $time_message = $time_diff->y . ' año' . ($time_diff->y > 1 ? 's' : '') . '.';
+        }
+
+        // Elimina la coma y el espacio extra al final
+        $time_message = rtrim($time_message, ', ');
+        // Muestra el mensaje
+        return 'Hace ' . $time_message;
+    }
+}

@@ -47,6 +47,13 @@ class Views extends BaseController
      */
     protected $viewFilter = 'view/filter';
 
+    /**
+     * An string of helpers to be loaded automatically upon
+     *
+     * @var string
+     */
+    protected $viewDetails = 'view/details';
+
     /*public function getName(): string
     {
         return 'roles';
@@ -174,5 +181,41 @@ class Views extends BaseController
             return ob_get_clean();
         }
         return $td;
+    }
+
+    public function detail($slug, $Id)
+    {
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
+
+        $Model = $this->getModel()->ExistsBySlug($slug);
+        
+        //var_dump($Model); exit();
+        if(strlen(trim($slug))===0 || is_null($Model)){
+            return redirect()->to($this->slug.'s')->with('warning', '¡Este registro no existe!');
+        }
+
+        $description = isset($Model[$this->getModel()->description()]) ? $Model[$this->getModel()->description()]: "";
+
+        $this->titlePage = $this->viewContent()->view->titlePage.$description;
+        $this->description = $this->viewContent()->view->description.$description;
+        $this->setContent($this->viewContent()->view->title.$description, $this->viewContent()->view->content.$description);
+        $this->addBreadcrumb($this->titlePage);
+
+        $this->setValues($Model);
+
+        $this->withLayout = 'details';
+
+        $Tabpanels = [];
+
+        foreach ($this->getModel()->getViewTabs($Model['idview']) as $Panel) {
+            # code...
+            $Tabpanels[] = (new \App\Models\TabviewModel())->getTabView($Panel['idtab'], $Id);
+        }
+
+        return $this->View($this->viewDetails,[
+            'tabPanels' => $Tabpanels
+        ]);
     }
 }

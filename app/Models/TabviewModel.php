@@ -14,7 +14,7 @@ class TabviewModel extends Model
     protected $returnType     = 'array';
     protected $useSoftDeletes = true;
 
-    protected $allowedFields = ['idview', 'idtaxonomy', 'icon', 'title', 'content', 'level', 'type', 'action', 'view_link', 'view_photo', 'view_title', 'view_content', 'view_author', 'view_created_at', 'enabled'];
+    protected $allowedFields = ['idview', 'idtaxonomy', 'icon', 'title', 'content', 'level', 'type', 'action', 'view_link', 'view_photo', 'view_title', 'view_content', 'view_filter', 'view_author', 'view_created_at', 'enabled'];
 
     protected bool $allowEmptyInserts = false;
 
@@ -132,13 +132,13 @@ class TabviewModel extends Model
             # code...
             switch ($field) {
                 case 'idview': 
-                    $AllFields[$field] = (Object) array(
+                    $AllFields[] = (Object) array(
                         'name' => 'idview',
                         'type' => 'hidden'
                     );
                     break;
                 case 'idtaxonomy': 
-                    $AllFields[$field] = (Object) array(
+                    $AllFields[] = (Object) array(
                         'name' => $field,
                         'label' => 'Taxonomía',
                         'type' => 'select',
@@ -148,7 +148,7 @@ class TabviewModel extends Model
                     break;
                 case 'icon':
                     # code...
-                    $AllFields[$field] = (Object) array(
+                    $AllFields[] = (Object) array(
                         'name' => $field,
                         'label' => 'Icono',
                         'type' => 'select',
@@ -236,6 +236,15 @@ class TabviewModel extends Model
                         'placeholder'=> 'Ingresa el nombre'
                     );
                     break;
+                case 'view_filter':
+                    # code...
+                    $AllFields[] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Filtro',
+                        'type' => 'textarea',
+                        'placeholder'=> 'Ingresa el filtro'
+                    );
+                    break;
                 case 'view_author':
                     $AllFields[] = (Object) array(
                         'name' => $field,
@@ -304,5 +313,78 @@ class TabviewModel extends Model
         }
 
         return true;
+    }
+
+    public function getTabView($IdTab, $Id){
+        $Tab = $this->Exists($IdTab);
+        if(!IS_NULL($Tab)){
+            $Taxonomy = (Object) (new TaxonomyModel())->where('idtaxonomy', $Tab['idtaxonomy'])->first();
+            $Fields = (new TaxonomyModel())->getFieldsExtras($Tab['idtaxonomy']);
+            if(!IS_NULL($Taxonomy)){
+                $Taxonomy->fields = $Fields;
+                $Tab['taxonomy'] = (Object) $Taxonomy;
+
+                if($Taxonomy->type!=="terms"){
+                    $Tab['model'] = [];
+                }else{
+                    $Model = new TermModel();
+                    $Lists = $Model->where('idtaxonomy', $Tab['idtaxonomy'])->findAll();
+                    
+                    $Filters = [];
+
+                    $Models = [];
+                    
+                    if($Tab['view_filter'] !== ""){
+                        foreach (explode("&", $Tab['view_filter']) as $filter) {
+                            $param = explode("=", $filter);
+                            
+                            if(isset($param[0]) && isset($param[1])){
+                                if($param[1] === 'Id'){
+                                    $Filters[$param[0]] = $Id;
+                                }else{
+                                    $Filters[$param[0]] = $param[1];
+                                }
+                            }
+                        }
+                    }
+                    
+                    foreach ($Lists as $index => $list) {
+                        //$Lists[
+                        $metas = $Model->getMeta($list['idterm']);
+                        //var_dump($metas);
+                        //var_dump($Fields);
+                        $Exists = false;
+                        foreach ($Filters as $key => $filter) {
+                            # code...
+                            if(isset($list[$key])){
+                                if($list[$key].""===$filter.""){
+                                    $Exists = true;
+                                }
+                            }
+
+                            if(isset($metas[$key])){
+                                //var_dump($metas[$key]."===".$filter."");
+                                if($metas[$key].""===$filter.""){
+                                    $Exists = true;
+                                }
+                            }
+                        }
+
+                        if($Exists){
+                            $list['metas'] = $metas;
+                            $Models[] = $list;
+                        }
+                        //var_dump($Filters);
+                        //var_dump($list);
+                    }
+                    //var_dump($Models);
+                    //exit();
+                    $Tab['model'] = $Models;
+                }
+            }
+            return (Object) $Tab;
+        }
+
+        return NULL;
     }
 }

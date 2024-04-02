@@ -12,7 +12,9 @@
                         if($model){
                             ob_start();
                             foreach ($model->getFields() as $field) {
-                                echo field_html($field, $values, $validator);
+                                if($field->type !== 'view'){
+                                    echo field_html($field, $values, $validator);
+                                }
                             }
 
                             echo br_html();

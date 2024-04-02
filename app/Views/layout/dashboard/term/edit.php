@@ -19,8 +19,12 @@
                                     echo field_html($field, $values, $validator);
                                 }
                             }
-                            echo '<hr>';
-                            echo '<h5 class="card-title mb-3">'._('Datos adicionales').'</h5>';
+
+                            if(count($extras)>0){
+                                echo '<hr>';
+                                echo '<h5 class="card-title mb-3">'._('Datos adicionales').'</h5>';
+                            }
+                            
                             
                             echo div_html('row');
                             foreach ($extras as $field) {

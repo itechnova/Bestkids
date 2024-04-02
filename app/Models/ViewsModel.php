@@ -14,7 +14,7 @@ class ViewsModel extends Model
     protected $returnType     = 'array';
     protected $useSoftDeletes = true;
 
-    protected $allowedFields = ['title', 'content', 'level', 'enabled'];
+    protected $allowedFields = ['title', 'slug', 'content', 'idtaxonomy', 'type', 'action', 'view_photo', 'view_title', 'view_content', 'level', 'enabled'];
 
     protected bool $allowEmptyInserts = false;
 
@@ -55,6 +55,11 @@ class ViewsModel extends Model
 
     }
 
+    public function ExistsBySlug($Id){
+        return $this->where('slug', $Id)->first();
+
+    }
+
     public function getID($values){
         if(isset($values[$this->primaryKey])){
             if($values[$this->primaryKey] !== ""){
@@ -76,7 +81,17 @@ class ViewsModel extends Model
                 if($field === 'enabled'){
                     $_VALUES_[$field] = $values[$field] === "on" ? 1: 0;
                 }else{
-                    $_VALUES_[$field] = $values[$field];
+                    if($field === 'slug'){
+                        $_VALUES_[$field] = permanentLink($values[$field]!==""?$values[$field]:$values['title']);
+                    }else{
+                        $_VALUES_[$field] = $values[$field];
+                    }
+                }
+            }else{
+                if($field === 'slug' && isset($values['title'])){
+                    if($values['title']!==""){
+                        $_VALUES_[$field] = permanentLink($values['title']);
+                    }
                 }
             }
         }
@@ -116,6 +131,12 @@ class ViewsModel extends Model
             'type' => 'hidden'
         );
 
+        $Taxonomys = [];
+        foreach ((new TaxonomyModel())->where('enabled', 1)->findAll() as $Taxonomy) {
+            # code...
+            $Taxonomys[$Taxonomy['idtaxonomy']] = $Taxonomy['title'];
+        }
+
         foreach ($this->allowedFields as $field) {
             # code...
             switch ($field) {
@@ -129,6 +150,15 @@ class ViewsModel extends Model
                         'required' => true
                     );
                     break;
+                case 'slug':
+                    # code...
+                    $AllFields[] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Enlace permanente',
+                        'type' => 'slug',
+                        'placeholder'=> 'Ingresa enlace permanente'                    
+                    );
+                    break;
                 case 'content':
                     # code...
                     $AllFields[] = (Object) array(
@@ -136,6 +166,66 @@ class ViewsModel extends Model
                         'label' => 'Descripción',
                         'type' => 'textarea',
                         'placeholder'=> 'Ingresa descripción',
+                    );
+                    break;
+                case 'idtaxonomy': 
+                    $AllFields[$field] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Taxonomía',
+                        'type' => 'select',
+                        'options'=> $Taxonomys,
+                        'placeholder'=> 'Seleccione'
+                    );
+                    break;
+                case 'type':
+                    # code...
+                    $AllFields[] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Tipo',
+                        'type' => 'select',
+                        'options'=>[
+                            'list'=>_('Lista'),
+                            'grid'=>_('Cuadricula'),
+                        ],
+                        'placeholder'=> 'Seleccione',
+                        'required' => true
+                    );
+                    break;
+                case 'action':
+                    # code...
+                    $AllFields[] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Acción nuevo',
+                        'type' => 'textarea',
+                        'placeholder'=> 'Ingresa acción nuevo',
+                    );
+                    break;
+                case 'view_photo':
+                    # code...
+                    $AllFields[] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Columna medio',
+                        'type' => 'textarea',
+                        'placeholder'=> 'Ingresa el nombre'
+                    );
+                    break;
+                case 'view_title':
+                    # code...
+                    $AllFields[] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Columna título',
+                        'type' => 'textarea',
+                        'placeholder'=> 'Ingresa el nombre',
+                        'required' => true
+                    );
+                    break;
+                case 'view_content':
+                    # code...
+                    $AllFields[] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Columna descripción',
+                        'type' => 'textarea',
+                        'placeholder'=> 'Ingresa el nombre'
                     );
                     break;
                 case 'level':
@@ -193,5 +283,9 @@ class ViewsModel extends Model
         }
 
         return true;
+    }
+
+    public function getViewTabs($IdView){
+        return (new TabviewModel())->where('idview', $IdView)->where('enabled', 1)->findAll();
     }
 }

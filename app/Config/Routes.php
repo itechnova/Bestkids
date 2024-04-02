@@ -111,6 +111,9 @@ $routes->post('/'.$ROUTE_DASHBOARD.'/entity/saved', 'Entitys::saved');
 $routes->get('/'.$ROUTE_DASHBOARD.'/views', 'Views::index');
 $routes->get('/'.$ROUTE_DASHBOARD.'/view/new', 'Views::new');
 $routes->get('/'.$ROUTE_DASHBOARD.'/view/view/(:alphanum)', 'Views::details/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/view/(:segment)', 'Views::detail/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/view/(:segment)/(:segment)', 'Views::detail/$1/$2');
+
 $routes->get('/'.$ROUTE_DASHBOARD.'/view/edit/(:alphanum)', 'Views::edit/$1');
 $routes->get('/'.$ROUTE_DASHBOARD.'/view/trash/(:alphanum)', 'Views::trash/$1');
 
