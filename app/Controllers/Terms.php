@@ -175,9 +175,9 @@ class Terms extends BaseController
             return intval($td) === 1 ? _('Si'):_('No');
         }
 
-        if($column === 'title'){
+        if($column === 'title' && !IS_NULL($this->Taxonomy['viewname'])){
             ob_start(); ?>
-                <a href="<?=site_url($this->slug.'/'.$this->Taxonomy['code'].'/view/'.$tr['slug']);?>"><?=$td;?></a>
+                <a href="<?=site_url('dashboard/view/'.$this->Taxonomy['viewname'].'/'.$tr['idterm']);?>"><?=$td;?></a>
             <?php 
             return ob_get_clean();
         }
@@ -245,7 +245,7 @@ class Terms extends BaseController
         return redirect()->to('dashboard/taxonomys')->with('warning', '¡La taxonomía no existe!');
     }
 
-    public function new($code="")
+    public function new($code="", $Id="")
     {
         if (!(session()->get('isLoggedIn'))) {
             return redirect()->to('/login');
@@ -261,6 +261,7 @@ class Terms extends BaseController
             $this->addBreadcrumb($this->titlePage);
             $this->withLayout = 'new';
             $this->values['idtaxonomy'] = $this->Taxonomy['idtaxonomy'];
+            $this->values['_GET_ID'] = $Id;
             return $this->View($this->viewEdit, [
                 'extras' => $this->ColumnFields
             ]);

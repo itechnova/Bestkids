@@ -141,7 +141,7 @@ class Tabviews extends BaseController
             return [];
         }
         //->where('idbusiness', getIdBussiness())
-        return (($this->getModel())->findAll());
+        return (($this->getModel())->where('idview', $this->vars['idview'])->findAll());
 
     }
 

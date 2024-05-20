@@ -91,8 +91,8 @@ if (!function_exists('display_error')) {
 
 if (!function_exists('logo_html')) {
     function logo_html($full = false) {
-        $logo = '/public/assets/media/image/logo.png';
-        $logosm ='/public/assets/media/image/logo-sm.png';
+        $logo = '/public/assets/resource/logo-blue.png';
+        $logosm ='/public/assets/resource/logo-sm.png';
         $logodark='/public/assets/media/image/logo-dark.png';
         ob_start(); ?><div id="logo"><a href="<?=site_url();?>"><img class="logo" src="<?=site_url($logo);?>" alt="logo"><?php if($full){ ?><img class="logo-sm" src="<?=site_url($logosm);?>" alt="small logo"><?php } ?><img class="logo-dark" src="<?=site_url($logodark);?>" alt="dark logo"></a></div><?php return ob_get_clean();
     }
@@ -153,9 +153,57 @@ if (!function_exists('form_html')) {
     }
 }
 
+if (!function_exists('getFilter')) {
+    function getFilter($Args, $search) {
+        // Inicializamos un array para almacenar los elementos filtrados
+        $result = array();
+    
+        // Recorremos el array grande
+        foreach ($Args as $obj) {
+            $exists = true;
+    
+            // Verificamos cada condición del array filtro
+            foreach ($search as $key => $value) {
+                // Verificamos si la clave existe en el elemento y si el valor coincide
+                if (!isset($obj[$key]) || $obj[$key] !== $value) {
+                    $exists = false;
+                    break;
+                }
+            }
+    
+            // Si el elemento cumple todas las condiciones, lo agregamos a los resultados
+            if ($exists) {
+                $result[] = $obj;
+            }
+        }
+    
+        return $result;
+    }
+}
+
+if (!function_exists('FilterUniq')) {
+    function FilterUniq($Args, $search) {
+
+        $exists = true;
+        foreach ($search as $key => $value) {
+            // Verificamos si la clave existe en el elemento y si el valor coincide
+            if (!isset($Args[$key]) || $Args[$key] !== $value) {
+                $exists = false;
+                break;
+            }
+        }
+    
+        return $exists;
+    }
+}
+
 if (!function_exists('proccess_options')) {
-    function proccess_options($field) {
+    function proccess_options($field, $values=[]) {
         $options = property_exists($field, 'options')?$field->options:"";
+
+        if($field->options === '_GET_ID'){
+            return $field->options;
+        }
 
         if($options === ""){
             return [];
@@ -167,20 +215,39 @@ if (!function_exists('proccess_options')) {
             try {
                 //code...
                 $Model = new $ModelLoad();
-
+                $_FILTERS = [];
                 foreach (explode('&', $dynamics[1]) as $filter) {
                     if(count(explode('=', $filter))>1){
                         $where = explode('=', $filter);
                         $column=$where[0];
                         $value=$where[1];
-                        $Model->where($column, $value);
+                        if($value === '_GET_ID'){
+                            if(isset($values[$value])){
+                                $value = $values[$value];
+                            }
+                        }
+                        if(count(explode("*", $column))===1){
+                            $Model->where($column, $value);
+                        }else{
+
+                            $_FILTERS[explode("*", $column)[1]] = $value;
+                        }
+                        
                     }
                 }
                 $rows = $Model->findAll();
 
                 $OptionList = [];
                 foreach ($rows as $row) {
-                    $OptionList[$row[$Model->primaryKey()]] = $row[$Model->description()];
+                    $Allowed = true;
+                    if(count($_FILTERS)>0 && ($dynamics[0] === 'TermModel' || $dynamics[0] === 'EntityModel')){
+                        $ID = $row[$Model->primaryKey()];
+                        $Allowed = FilterUniq($Model->getMeta($ID), $_FILTERS);
+                    }
+                    
+                    if($Allowed){
+                        $OptionList[$row[$Model->primaryKey()]] = $row[$Model->description()];
+                    }
                 }
                 return $OptionList;
             } catch (\Throwable $th) {
@@ -254,7 +321,7 @@ if (!function_exists('field_dynamic_html')) {
             'type' => $field->typefield,
             'placeholder'=> $field->placeholder,
             'class'=> $field->class,
-            'options' => proccess_options($field)
+            'options' => proccess_options($field, $values)
         );
 
         if($field->required."" === '1'){
@@ -362,8 +429,14 @@ if (!function_exists('field_html')) {
                 if(property_exists($field, 'placeholder')){
                     ?><option value=""><?=$field->placeholder;?></option><?php
                 }
-                foreach ($field->options as $value_option => $option_text) {
-                    ?><option value="<?=$value_option;?>" <?=($value.""===$value_option."")?"selected":"";?>><?=$option_text;?></option><?php
+                if(is_array($field->options)){
+                    foreach ($field->options as $value_option => $option_text) {
+                        ?><option value="<?=$value_option;?>" <?=($value.""===$value_option."")?"selected":"";?>><?=$option_text;?></option><?php
+                    }                    
+                }else{
+                    if(isset($values[$field->options])){
+                        $value = $values[$field->options];
+                    } 
                 }
                 $options = ob_get_clean();
             }
@@ -538,8 +611,10 @@ if (!function_exists('field_view_html')) {
                 if(property_exists($field, 'placeholder')){
                     ?><option value=""><?=$field->placeholder;?></option><?php
                 }
-                foreach ($field->options as $value_option => $option_text) {
-                    ?><option value="<?=$value_option;?>" <?=($value.""===$value_option."")?"selected":"";?>><?=$option_text;?></option><?php
+                if(is_array($field->options)){
+                    foreach ($field->options as $value_option => $option_text) {
+                        ?><option value="<?=$value_option;?>" <?=($value.""===$value_option."")?"selected":"";?>><?=$option_text;?></option><?php
+                    }                    
                 }
                 $options = ob_get_clean();
             }
@@ -668,7 +743,7 @@ if (!function_exists('table_html')) {
             $id = $tabled->id;
         }
 
-        $class = "Datatable table table-striped table-bordered";
+        $class = "Datatable table table-striped";
         if(property_exists($tabled, 'class')){
             $class .= " ".$tabled->class;
         }
@@ -969,6 +1044,7 @@ if (!function_exists('deleteAll')) {
 
 if(!function_exists('view_card')){
     function view_card($item){
+        //var_dump($item);
         $File = NULL;
         foreach ($item->taxonomy->fields as $field) {
             if(isset($item->metas[$field['name']])){
@@ -981,13 +1057,40 @@ if(!function_exists('view_card')){
             }
         }
         ob_start();
+        //echo "<pre>";
+        $ID = 0;
+        if($item->taxonomy->type === "entity"){
+            $ID = $item->identity;
+        }else{
+            $ID = $item->idterm;
+        }
+        //echo "</pre>";
         ?>
-        <a href="">
-            <div class="card cursor-pointer border">
+        <div id="<?=$item->taxonomy->type.'-'.$ID?>" style="position: relative;" class="draggable col-xl-3 col-lg-4 col-md-6 col-sm-12" draggable="true">
+            <div style="display: flex;position: absolute;top: 15px;right: 30px;z-index: 99;width: 32px;height: 32px;align-content: center;justify-content: center;align-items: center;background: #2161af;border: 1px solid #2161af;border-radius: 4px;box-shadow: 1px 1px 14px rgb(26 26 26 / 44%);color: #fcfdfd;cursor: move;"><i data-feather="move"></i></div>
+        <a href="<?=site_url($item->panel->view_link.$ID);?>">
+            <div class="card cursor-pointer">
                 <?php if(!IS_NULL($File)){ ?>
-                    <img src="<?=!IS_NULL($File) ? site_url('/file/'.$File->slug): "";?>" class="card-img-top" alt="image" style="max-height: 297px;object-fit: cover;">
+                    <?php
+                        $render = viewFile($File);
+                        $render_html ="";
+                        $render_html .= '<div class="card-img-top app-file-list app-render-item" data-'.(property_exists($File, 'idfile') ? 'file': 'folder').'-id="'.(property_exists($File, 'idfile') ? $File->idfile: $File->idfolder).'" style="position: relative;">';
+                        $render_html .= '<div class="app-file-icon'.($render->target === 'image'?' overflow-hidden':'').'"'.($render->target === 'image'?' style="height: 297px;max-height: 297px;object-fit: cover;background: url('.site_url('file/'.(property_exists($File, 'slug')? $File->slug: '')).');background-size: cover;background-position: center;background-repeat: no-repeat;"':' style="height: 297px;display: flex;align-content: center;justify-content: center;align-items: center;"').'>';
+                        if($render->target === 'icon') {
+                            $render_html .= '<i class="'.$render->class.'"></i>';
+                        }
+                        if($render->target === 'image') {
+                            //$render_html .= '<img src="https://via.placeholder.com/512X512" class="w-100" alt="image">';
+                            $render_html .= '<i class="fa fa-3x fa-image" style="opacity: 0;"></i>';
+                        }
+                        $render_html .= '</div>';
+                        $render_html .= '</div>';
+
+                        echo $render_html;
+                    ?>
+                    <!--img src="< ?=!IS_NULL($File) ? site_url('/file/'.$File->slug): "";?>" class="" alt="image" style=""-->
                 <?php } else { ?>
-                    <div style="background: #1a1a1aa3;border-radius: 8px 8px 0 0;" class="p-50 text-center"><i class="fa fa-image" style="font-size: 7rem;color: #ffff;"></i></div>
+                    <div style="height: 297px;display: flex;background: #2db2ad;border-radius: 8px 8px 0 0;align-content: center;justify-content: center;align-items: center;" class="p-50 text-center"><i class="fa fa-image" style="font-size: 7rem;color: #ffff;"></i></div>
                 <?php } ?>
                 <div class="card-body">
                     <h6 class="card-title text-primary mb-2"><?=$item->title?></h6>
@@ -999,18 +1102,18 @@ if(!function_exists('view_card')){
                 </div>
             </div>
         </a>
+        </div>
         <?php return ob_get_clean();
     }
 }
 
 if(!function_exists('view_card_new')){
     function view_card_new($panel){
-        //var_dump($panel);
         ob_start();
         ?>
-        <a href="<?=site_url($panel->action);?>">
-            <div class="card cursor-pointer border">
-                <div style="display: flex;background: #1a1a1a59;border-radius: 8px 8px 0 0;height: 297px;align-content: center;justify-content: center;align-items: center;" class="p-50 text-center"><i class="fa fa-plus-circle" style="font-size: 12rem;color: #ffff;"></i></div>
+        <a href="<?=site_url($panel->action."/".$panel->idViewModel);?>">
+            <div class="card cursor-pointer">
+                <div style="display: flex;background: #2cb2ad;border-radius: 8px 8px 0 0;height: 297px;align-content: center;justify-content: center;align-items: center;" class="p-50 text-center"><i class="fa fa-plus-circle" style="font-size: 12rem;color: #ffff;"></i></div>
                 <div class="card-body">
                     <h6 class="card-title text-center text-primary mb-2"><?=_('Nuevo');?></h6>
                     <!--p class="card-text">This is a wider card with supporting text below as a natural lead-in to

@@ -22,7 +22,7 @@
 
                             if(count($extras)>0){
                                 echo '<hr>';
-                                echo '<h5 class="card-title mb-3">'._('Datos adicionales').'</h5>';
+                                //echo '<h5 class="card-title mb-3">'._('Datos adicionales').'</h5>';
                             }
                             
                             

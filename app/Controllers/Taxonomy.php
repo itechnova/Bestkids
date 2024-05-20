@@ -216,4 +216,42 @@ class Taxonomy extends BaseController
         }
         return $td;
     }
+
+    public function move(){
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
+
+        try {
+            //code...
+            $Typed = $this->request->getPost('typed');
+            $Content = json_decode($this->request->getPost('content'));
+
+            $Model = ($Typed === 'entity' ?  new \App\Models\EntityModel() : new \App\Models\TermModel());
+            $ID = isset($Content->order[0])?$Content->order[0]:null;
+            if(!IS_NULL($ID)){
+                $Object = $Model->Exists($ID);
+                if(!IS_NULL($Object)){
+                    //['idtaxonomy']
+                    $ModelOrder = new \App\Models\OrderTaxonomyModel();
+
+                    $OrderGrouped = $ModelOrder->ExistsBy($Typed, $Object['idtaxonomy']);
+
+                    if(IS_NULL($OrderGrouped)){
+                        $ModelOrder->insert([
+                            'idtaxonomy'=>$Object['idtaxonomy'],
+                            'typed'=>$Typed,
+                            'content'=>$this->request->getPost('content')
+                        ]);
+                    }else{
+                        $ModelOrder->update($OrderGrouped['idorder'], ['content'=>$this->request->getPost('content')]);
+                    }
+                }
+            }
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
+        
+        return json_encode([]);
+    }
 }

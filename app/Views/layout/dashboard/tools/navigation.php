@@ -16,7 +16,7 @@
             <?php //var_dump(User()); ?>
             <?php if($User){ ?>
                 <h5><?=$User->fullname;?></h5>
-                <p class="text-muted"><?=$User->role->title;?></p>
+                <p class="text-muted" style="color: #fab814 !important;"><?=$User->role->title;?></p>
             <?php } ?>
             <ul class="nav">
                 <li class="nav-item">

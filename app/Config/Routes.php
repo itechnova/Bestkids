@@ -83,6 +83,7 @@ $routes->get('/'.$ROUTE_DASHBOARD.'/taxonomy/edit/(:alphanum)', 'Taxonomy::edit/
 $routes->get('/'.$ROUTE_DASHBOARD.'/taxonomy/trash/(:alphanum)', 'Taxonomy::trash/$1');
 
 $routes->post('/'.$ROUTE_DASHBOARD.'/taxonomy/saved', 'Taxonomy::saved');
+$routes->post('/'.$ROUTE_DASHBOARD.'/taxonomy/move', 'Taxonomy::move');
 
 /*FIELDS*/
 $routes->get('/'.$ROUTE_DASHBOARD.'/fields/(:alphanum)', 'Fields::index/$1');
@@ -92,6 +93,7 @@ $routes->post('/'.$ROUTE_DASHBOARD.'/field/trash/(:alphanum)', 'Fields::trash/$1
 /* TERMS */
 $routes->get('/'.$ROUTE_DASHBOARD.'/terms/(:alphanum)', 'Terms::index/$1');
 $routes->get('/'.$ROUTE_DASHBOARD.'/term/(:alphanum)/new', 'Terms::new/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/term/(:alphanum)/new/(:alphanum)', 'Terms::new/$1/$2');
 $routes->get('/'.$ROUTE_DASHBOARD.'/term/(:alphanum)/view/(:alphanum)', 'Terms::details/$1/$2');
 $routes->get('/'.$ROUTE_DASHBOARD.'/term/(:alphanum)/edit/(:alphanum)', 'Terms::edit/$1/$2');
 $routes->get('/'.$ROUTE_DASHBOARD.'/term/(:alphanum)/trash/(:alphanum)', 'Terms::trash/$1/$2');
@@ -101,6 +103,7 @@ $routes->post('/'.$ROUTE_DASHBOARD.'/term/saved', 'Terms::saved');
 /* ENTITYS */
 $routes->get('/'.$ROUTE_DASHBOARD.'/entitys/(:alphanum)', 'Entitys::index/$1');
 $routes->get('/'.$ROUTE_DASHBOARD.'/entity/(:alphanum)/new', 'Entitys::new/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/entity/(:alphanum)/new/(:alphanum)', 'Entitys::new/$1/$2');
 $routes->get('/'.$ROUTE_DASHBOARD.'/entity/(:alphanum)/view/(:alphanum)', 'Entitys::details/$1/$2');
 $routes->get('/'.$ROUTE_DASHBOARD.'/entity/(:alphanum)/edit/(:alphanum)', 'Entitys::edit/$1/$2');
 $routes->get('/'.$ROUTE_DASHBOARD.'/entity/(:alphanum)/trash/(:alphanum)', 'Entitys::trash/$1/$2');

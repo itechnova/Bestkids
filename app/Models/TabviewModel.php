@@ -323,9 +323,59 @@ class TabviewModel extends Model
             if(!IS_NULL($Taxonomy)){
                 $Taxonomy->fields = $Fields;
                 $Tab['taxonomy'] = (Object) $Taxonomy;
+                $Tab['idViewModel'] = $Id;
 
                 if($Taxonomy->type!=="terms"){
-                    $Tab['model'] = [];
+                    $Model = new EntityModel();
+                    $Lists = $Model->where('idtaxonomy', $Tab['idtaxonomy'])->findAll();
+                    
+                    $Filters = [];
+
+                    $Models = [];
+                    
+                    if($Tab['view_filter'] !== ""){
+                        foreach (explode("&", $Tab['view_filter']) as $filter) {
+                            $param = explode("=", $filter);
+                            
+                            if(isset($param[0]) && isset($param[1])){
+                                if($param[1] === 'Id'){
+                                    $Filters[$param[0]] = $Id;
+                                }else{
+                                    $Filters[$param[0]] = $param[1];
+                                }
+                            }
+                        }
+                    }
+                    
+                    foreach ($Lists as $index => $list) {
+                        //$Lists[
+                        $metas = $Model->getMeta($list['identity']);
+                        //var_dump($metas);
+                        //var_dump($Fields);
+                        $Exists = false;
+                        foreach ($Filters as $key => $filter) {
+                            # code...
+                            if(isset($list[$key])){
+                                if($list[$key].""===$filter.""){
+                                    $Exists = true;
+                                }
+                            }
+
+                            if(isset($metas[$key])){
+                                //var_dump($metas[$key]."===".$filter."");
+                                if($metas[$key].""===$filter.""){
+                                    $Exists = true;
+                                }
+                            }
+                        }
+
+                        if($Exists){
+                            $list['metas'] = $metas;
+                            $Models[] = $list;
+                        }
+                    }
+                    
+                    $Tab['model'] = $Models;
                 }else{
                     $Model = new TermModel();
                     $Lists = $Model->where('idtaxonomy', $Tab['idtaxonomy'])->findAll();
@@ -374,11 +424,8 @@ class TabviewModel extends Model
                             $list['metas'] = $metas;
                             $Models[] = $list;
                         }
-                        //var_dump($Filters);
-                        //var_dump($list);
                     }
-                    //var_dump($Models);
-                    //exit();
+                    
                     $Tab['model'] = $Models;
                 }
             }

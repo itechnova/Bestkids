@@ -130,6 +130,7 @@ class FieldModel extends Model
                         'class' => 'model-required',
                         'options'=>[
                             'text'=>_('Texto'),
+                            'hidden'=>_('Oculto'),
                             'number'=>_('Número'),
                             'email'=>_('Correo'),
                             'tel'=>_('Teléfono'),

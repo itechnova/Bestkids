@@ -28,7 +28,7 @@
             <li class="nav-item search-form">
                 <div class="row">
                     <div class="col-md-6">
-                        <form>
+                        <!--form>
                             <div class="input-group">
                                 <input type="text" class="form-control" placeholder="Search">
                                 <div class="input-group-append">
@@ -37,7 +37,7 @@
                                     </button>
                                 </div>
                             </div>
-                        </form>
+                        </form-->
                     </div>
                 </div>
             </li>

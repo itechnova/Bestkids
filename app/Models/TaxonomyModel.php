@@ -14,7 +14,7 @@ class TaxonomyModel extends Model
     protected $returnType     = 'array';
     protected $useSoftDeletes = true;
 
-    protected $allowedFields = ['code', 'type', 'title', 'content', 'view', 'level', 'status', 'enabled'];
+    protected $allowedFields = ['code', 'type', 'title', 'content', 'viewname', 'view', 'level', 'status', 'enabled'];
 
     protected bool $allowEmptyInserts = false;
 
@@ -214,6 +214,14 @@ class TaxonomyModel extends Model
                         'type' => 'number',
                         'placeholder'=> 'Ingresa nivel de acceso',
                         'required' => true
+                    );
+                    break;
+                case 'viewname': 
+                    $AllFields[] = (Object) array(
+                        'name' => $field,
+                        'label' => 'Enlace vista',
+                        'type' => 'text',
+                        'placeholder'=> 'Ingresa enlace de la vista'
                     );
                     break;
                 case 'status':

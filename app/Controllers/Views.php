@@ -215,7 +215,141 @@ class Views extends BaseController
         }
 
         return $this->View($this->viewDetails,[
-            'tabPanels' => $Tabpanels
+            'tabPanels' => $Tabpanels        
         ]);
+    }
+
+    protected function head(): string
+    {
+        ob_start(); ?>
+        <style>
+            .row.dropzones {
+                border: none;
+                min-height: 60vh;
+            }
+
+            .row.dropzones > div {
+                height: 400px;
+            }
+
+            .row.dropzones {
+                border-width: 2px;
+                border-radius: 20px;
+                padding: 15px;
+            }
+            
+            .row.dropzones.dragover {
+                border: 2px dashed #d1d1d1;
+                background: #f1f1f1;
+                box-shadow: 1px 1px 14px rgb(26 26 26 / 14%);
+            }
+
+            .row.dropzones.dragover .hidden {
+                display: 'none';
+            }
+        </style>
+        <?php return ob_get_clean();
+    }
+    
+    protected function script(): string
+    {
+        ob_start(); ?>
+        <script type="text/javascript">
+            'use strict';
+            document.addEventListener('DOMContentLoaded', (event) => {
+                const draggables = document.querySelectorAll('.draggable');
+                const dropzones = document.querySelectorAll('.dropzones');
+
+                draggables.forEach(draggable => {
+                    draggable.addEventListener('dragstart', dragStart);
+                    //draggable.addEventListener('dragend', dragEnd);
+                });
+
+                dropzones.forEach(dropzone => {
+                    dropzone.addEventListener('dragover', dragOver);
+                    dropzone.addEventListener('drop', drop);
+                    //dropzone.addEventListener('dragleave', dragLeave);
+                });
+
+                function dragStart(event) {
+                    event.dataTransfer.setData('text', event.target.id);
+                    setTimeout(() => {
+                        event.target.classList.add('hidden');
+                    }, 0);
+                }
+
+                function dragEnd(event) {
+                    event.target.classList.remove('hidden');
+                    const dropzones = document.querySelectorAll('.dropzones');
+                    dropzones.forEach(dropzone => {
+                        dropzone.classList.remove('dragover');
+                    });
+                }
+
+
+                function dragOver(event) {
+                    event.preventDefault();
+                    if(event.target.classList.contains('draggable')){
+                        const parent = event.target.parentElement;
+                        if (parent.classList.contains('dropzones') && parent.dataset.allowDrop === 'true') {
+                            
+                            parent.classList.add('dragover');
+                        }
+                    }
+                }
+
+                function drop(event) {
+                    event.preventDefault();
+                    const id = event.dataTransfer.getData('text');
+                    const draggable = document.getElementById(id);
+
+                    if(event.target.dataset.allowDrop === 'true'){
+                        event.target.appendChild(draggable);
+                        event.target.classList.remove('dragover');
+
+                        
+                        const children = event.target.children;
+
+                        let typed = '';
+                        let content = {order: []};
+
+                        for (let i = 0; i < children.length; i++) {
+                            if(children[i]?.id){
+                                const childrenId = (children[i].id).split("-");
+                                typed = childrenId[0];
+                                content.order.push(childrenId[1]);
+                            }
+                        }
+
+                        $.ajax({
+                            url: '<?=site_url("dashboard/taxonomy/move");?>',   // URL a la que enviar la solicitud
+                            method: 'POST',      // Método HTTP (POST, GET, etc.)
+                            data: {
+                                typed: typed,
+                                content: JSON.stringify(content)
+                            },          // Datos a enviar en la solicitud (opcional)
+                            dataType: 'json'     // Tipo de datos esperados en la respuesta (opcional)
+                        }).done((response)=>{
+                            console.log(response)
+                        }).fail(function(jqXHR, textStatus, errorThrown) {
+                            //Callback para manejar errores
+                            console.error('Error en la solicitud AJAX:', textStatus, errorThrown);
+                        });
+                    }        console.log(event.target);
+                    // sendToServer(id, event.target.id);
+                }
+
+                function dragLeave(event) {
+                    if(event.target.classList.contains('draggable')){
+                        const parent = event.target.parentElement;
+                        if (parent.classList.contains('dropzones') && parent.dataset.allowDrop === 'true') {
+                            //parent.classList.remove('dragover');
+                        }
+                    }
+                }
+            });
+
+        </script>
+        <?php return ob_get_clean();
     }
 }

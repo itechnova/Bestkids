@@ -2,11 +2,57 @@
 
 namespace App\Controllers;
 
-class Roles extends BaseController
+class Home extends BaseController
 {
-    public static $NAME = 'roles';
-    public function index(): string
+
+    /**
+     * An string of helpers to be loaded automatically upon
+     *
+     * @var string
+     */
+    protected $title = 'Home';
+        
+    /**
+     * An string of helpers to be loaded automatically upon
+     *
+     * @var string
+     */
+    protected $slug = '';
+
+    /**
+     * An string of helpers to be loaded automatically upon
+     *
+     * @var string
+     */
+    protected $viewView = '';
+
+    /**
+     * An string of helpers to be loaded automatically upon
+     *
+     * @var string
+     */
+    protected $viewEdit = '';
+
+    /**
+     * An string of helpers to be loaded automatically upon
+     *
+     * @var string
+     */
+    protected $viewList = '';
+
+    /**
+     * An string of helpers to be loaded automatically upon
+     *
+     * @var string
+     */
+    protected $viewFilter = '';
+
+    public function index()
     {
-        return view('welcome_message');
+        if (!(session()->get('isLoggedIn'))) {
+            return redirect()->to('/login');
+        }
+        
+        return redirect()->to('/dashboard');
     }
 }

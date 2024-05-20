@@ -173,6 +173,7 @@ class Fields extends BaseController
         if($column === 'typefield'){
             $OPTION = [
                 'text'=>_('Texto'),
+                'hidden'=>_('Oculto'),
                 'number'=>_('Número'),
                 'email'=>_('Correo'),
                 'tel'=>_('Teléfono'),
