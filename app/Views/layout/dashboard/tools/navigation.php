@@ -20,17 +20,17 @@
             <?php } ?>
             <ul class="nav">
                 <li class="nav-item">
-                    <a href="profile.html" class="btn nav-link bg-info-bright" title="Profile" data-toggle="tooltip">
+                    <a href="<?=site_url('dashboard/account/view/'.$User->idaccount);?>" class="btn nav-link bg-info-bright" title="Mi perfil" data-toggle="tooltip">
                         <i data-feather="user"></i>
                     </a>
                 </li>
-                <li class="nav-item">
+                <!--li class="nav-item">
                     <a href="#" class="btn nav-link bg-success-bright" title="Settings" data-toggle="tooltip">
                         <i data-feather="settings"></i>
                     </a>
-                </li>
+                </li-->
                 <li class="nav-item">
-                    <a href="login.html" class="btn nav-link bg-danger-bright" title="Logout" data-toggle="tooltip">
+                    <a href="<?= site_url('logout'); ?>" class="btn nav-link bg-danger-bright" title="Cerrar sesión" data-toggle="tooltip">
                         <i data-feather="log-out"></i>
                     </a>
                 </li>

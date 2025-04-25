@@ -133,7 +133,7 @@ abstract class BaseController extends Controller
         $this->addBreadcrumb($this->title, site_url($this->slug.'s'));
         // Do Not Edit This Line
 
-        helper(['core_helper', 'option_helper']);
+        helper(['core_helper', 'option_helper', 'jwt_helper']);
 
         parent::initController($request, $response, $logger);
 

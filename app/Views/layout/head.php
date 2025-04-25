@@ -61,7 +61,7 @@
         }
     }
 
-    #main {
+    #main, .modal .modal-dialog .modal-content .modal-header {
         background: url('<?=base_url('public/assets/resource/bg.jpeg');?>');
     }
 
@@ -81,7 +81,7 @@
         max-width: 210px;
     }
     .navigation {
-        background-color: #c0fcfe;
+        background-color: #fffbeb;
         box-shadow: 1px 1px 20px rgb(26 26 26 / 14%);
     }
 
@@ -210,5 +210,47 @@
 
     .text-primary {
         color: #2161af !important;
+    }
+
+    #society .modal-body {
+        overflow: hidden;
+        background: #c0fcfe;
+    }
+
+    .society_btn{
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        right: 0px;
+        bottom: 0px;
+        z-index: 1;
+        display: flex;
+        align-content: center;
+        justify-content: center;
+        align-items: center;
+        background: rgb(26 26 26 / 88%);
+        display: none;
+    }
+
+
+    .item-society:hover .society_btn{
+        display: flex;
+    }
+
+    .alert_message{
+        display: none;
+        color: #fff;
+        background: #2161af;
+        border: 1px solid #2161af;
+        box-shadow: 1px 1px 14px rgb(26 26 26 / 44%);
+        padding: 10px 15px;
+        border-radius: 8px;
+        width: auto;
+        max-width: 540px;
+        margin: 20px auto -20px;
+    }
+
+    .form-group.wd-xs-300.slug {
+        display: none;
     }
 </style>

@@ -201,6 +201,7 @@ class Views extends BaseController
         $this->titlePage = $this->viewContent()->view->titlePage.$description;
         $this->description = $this->viewContent()->view->description.$description;
         $this->setContent($this->viewContent()->view->title.$description, $this->viewContent()->view->content.$description);
+        unset($this->breadcrumbs[1]); 
         $this->addBreadcrumb($this->titlePage);
 
         $this->setValues($Model);
@@ -210,10 +211,11 @@ class Views extends BaseController
         $Tabpanels = [];
 
         foreach ($this->getModel()->getViewTabs($Model['idview']) as $Panel) {
+            //var_dump($Panel);
             # code...
             $Tabpanels[] = (new \App\Models\TabviewModel())->getTabView($Panel['idtab'], $Id);
         }
-
+//exit();
         return $this->View($this->viewDetails,[
             'tabPanels' => $Tabpanels        
         ]);

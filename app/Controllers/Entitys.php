@@ -376,7 +376,8 @@ class Entitys extends BaseController
     {
         $Model = $this->getModel();
         ob_start(); ?>
-        <script src="https://cdn.tiny.cloud/1/hr9an7nmm0jxbcon8v8nls1018pujtkdg81f1u033nqptupz/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+        <!--script src="https://cdn.tiny.cloud/1/hr9an7nmm0jxbcon8v8nls1018pujtkdg81f1u033nqptupz/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script-->
+        <script src="<?= base_url('public/vendors/ckeditor/ckeditor.js'); ?>"></script>
         <!--script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script-->
         <?php return ob_get_clean();
         //<script>tinymce.init({ selector:'textarea' });</script>
@@ -386,7 +387,27 @@ class Entitys extends BaseController
     {
         $Model = $this->getModel();
         ob_start(); ?>
-        <script>tinymce.init({ selector:'textarea', language: 'es' });</script>
+        <script type="text/javascript">
+            'use strict';
+            $(document).ready(function () { 
+                let editores = document.querySelectorAll('textarea#content');
+                if (editores.length > 0) {
+                    let handlerError = (err) => {
+                        console.log(err);
+                    };
+
+                    editores.forEach(editorElement => {
+                        ClassicEditor.create(editorElement, {})
+                            .then(editor => {
+                                // Opcionalmente, puedes almacenar una referencia al editor
+                                editorElement._editorInstance = editor;
+                            })
+                            .catch(handlerError);
+                    });
+                }
+
+            });
+        </script>
         <?php return ob_get_clean();
     }
 

@@ -230,6 +230,22 @@ class Filemanager extends BaseController
         );
     }
 
+    public function viewmedia($Id="")
+    {
+        $File = $this->getModel()->Exists($Id);
+
+        if(!IS_NULL($File)){
+            $File = (Object) $File;
+            if (file_exists($File->path)) {
+                $ContentType = mime_content_type($File->path);
+                header('Content-Type: ' . $ContentType);
+                exit(readfile($File->path));
+                //return $this->response->download($File->path, null);
+            }
+        }
+        return "Archivo no encontrado";
+    }
+
     public function views($slug="")
     {
         $File = $this->getModel()->ExistsBy('slug', $slug);

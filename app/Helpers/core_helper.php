@@ -185,9 +185,12 @@ if (!function_exists('FilterUniq')) {
     function FilterUniq($Args, $search) {
 
         $exists = true;
+        
         foreach ($search as $key => $value) {
             // Verificamos si la clave existe en el elemento y si el valor coincide
-            if (!isset($Args[$key]) || $Args[$key] !== $value) {
+            //var_dump(!isset($Args[$key]));
+            //var_dump($Args[$key]." !== ".$value."");
+            if (!isset($Args[$key]) || $Args[$key]."" !== $value."") {
                 $exists = false;
                 break;
             }
@@ -390,7 +393,7 @@ if (!function_exists('field_html')) {
                 $label = ob_get_clean();
             }
 
-            $class = "form-group wd-xs-300";
+            $class = "form-group wd-xs-300 ".$name;
             if(property_exists($field, 'class')){
                 $class .= " ".$field->class;
             }
@@ -1165,5 +1168,366 @@ if(!function_exists('agoDate')){
         $time_message = rtrim($time_message, ', ');
         // Muestra el mensaje
         return 'Hace ' . $time_message;
+    }
+}
+
+if (!function_exists('proccess_model_filters')) {
+    function proccess_model_filters($ModelName, $Filter) {
+
+        try {
+            //code...
+            $ModelLoad = "\App\Models\\".$ModelName;
+
+            $Model = new $ModelLoad();
+            $_FILTERS = [];
+            foreach (explode('&', $Filter) as $filter) {
+                if(count(explode('=', $filter))>1){
+                    $where = explode('=', $filter);
+                    $column=$where[0];
+                    $value=$where[1];
+                    /*if($value === '_GET_ID'){
+                        $value = $Id;
+                    }*/
+                    if(count(explode("*", $column))===1){
+                        if($value !== '_GET_ID'){
+                            $Model->where($column, $value);
+                        }
+                    }else{
+                        $_FILTERS[explode("*", $column)[1]] = $value;
+                    }
+                }
+            }
+            $rows = $Model->findAll();
+            $Lists = [];
+            foreach ($rows as $row) {
+                $Allowed = true;
+                if(count($_FILTERS)>0 && ($ModelName === 'TermModel' || $ModelName === 'EntityModel')){
+                    $ID = $row[$Model->primaryKey()];
+                    $Metas = $Model->getMeta($ID);
+                    $Allowed = FilterUniq($Metas, $_FILTERS);
+                }
+                
+                if($Allowed){
+                    $Lists[] = $row;
+                }
+            }
+
+            //echo "<pre>";
+            //var_dump($Model->db->getLastQuery()->getQuery());
+            //var_dump($Lists);
+            //exit("</pre>");
+            return (Object) array('Model'=>$Model, 'Lists'=>$Lists);
+        } catch (\Throwable $th) {
+            return (Object) array('Model'=>null, 'Lists'=>null);
+        }
+    }
+}
+
+
+if (!function_exists('proccess_model_filter')) {
+    function proccess_model_filter($ModelName, $Filter, $Id) {
+
+        try {
+            //code...
+            $ModelLoad = "\App\Models\\".$ModelName;
+
+            $Model = new $ModelLoad();
+            $_FILTERS = [];
+            foreach (explode('&', $Filter) as $filter) {
+                if(count(explode('=', $filter))>1){
+                    $where = explode('=', $filter);
+                    $column=$where[0];
+                    $value=$where[1];
+                    if($value === '_GET_ID'){
+                        $value = $Id;
+                    }
+                    if(count(explode("*", $column))===1){
+                        $Model->where($column, $value);
+                    }else{
+                        $_FILTERS[explode("*", $column)[1]] = $value;
+                    }
+                }
+            }
+            $rows = $Model->findAll();
+            $Lists = [];
+            foreach ($rows as $row) {
+                $Allowed = true;
+                if(count($_FILTERS)>0 && ($ModelName === 'TermModel' || $ModelName === 'EntityModel')){
+                    $ID = $row[$Model->primaryKey()];
+                    $Metas = $Model->getMeta($ID);
+                    //var_dump($Metas);
+                    $Allowed = FilterUniq($Metas, $_FILTERS);
+                    
+                    //var_dump($Allowed);
+                }
+                
+                if($Allowed){
+                    $Lists[] = $row;
+                }
+            }
+
+            //echo "<pre>";
+            //var_dump($Model->db->getLastQuery()->getQuery());
+            //var_dump($Lists);
+            //exit("</pre>");
+            return (Object) array('Model'=>$Model, 'Lists'=>$Lists);
+        } catch (\Throwable $th) {
+            return (Object) array('Model'=>null, 'Lists'=>null);
+        }
+    }
+}
+
+
+if (!function_exists('prepare_filter_text')) {
+    function prepare_filter_text($string, $row) {
+        $data = explode('%', $string);
+        if(count($data)>1 && !is_null($row)){
+            if(isset($row[$data[1]])){
+                return implode($row[$data[1]], explode("%".$data[1], $string));
+            }
+        }
+
+        return $string;
+    }
+}
+
+if (!function_exists('proccess_select_html')) {
+    function proccess_select_html($options) {
+
+        try {
+            //code...
+            $dynamics = explode(":", explode("||", $options)[0]);
+            $ModelLoad = "\App\Models\\".$dynamics[0];
+
+            $Model = new $ModelLoad();
+            $_FILTERS = [];
+            foreach (explode('&', $dynamics[1]) as $filter) {
+                if(count(explode('=', $filter))>1){
+                    $where = explode('=', $filter);
+                    $column=$where[0];
+                    $value=$where[1];
+                    $Model->where($column, $value);
+                }
+            }
+
+            $rows = [];
+            foreach ($Model->findAll() as $row) {
+                $rows[$row[$Model->primaryKey()]] = $row[$Model->description()];
+            }
+            return $rows;
+        } catch (\Throwable $th) {
+            return [];
+        }
+    }
+}
+
+
+if(!function_exists('society_card')){
+    function society_card($item){
+
+        $File = NULL;
+        $ID = 0;
+
+
+        if(property_exists($item, "idtaxonomy")){
+            $ModelTaxonomy = new \App\Models\TaxonomyModel();
+            $Fields = $ModelTaxonomy->getFieldsExtras($item->idtaxonomy);
+            foreach ($Fields as $field) {
+                if(isset($item->metas[$field['name']])){
+                    if($field['typefield'] === "file"){
+                        $File = (new \App\Models\FileModel())->Exists($item->metas[$field['name']]);
+                        if(!IS_NULL($File)){
+                            $File = (Object) $File;
+                        }
+                    }
+                }
+            }
+            
+            if(property_exists($item, "identity")){
+                $ID = $item->identity;
+            }else{
+                $ID = $item->idterm;
+            }
+        }else{
+            if(property_exists($item, "idaccount")){
+                $ID = $item->idaccount;
+            }
+        }
+
+        
+        ob_start();
+
+        $media_out = '<div style="height: 160px;display: flex;background: #2db2ad;border-radius: 8px 8px 0 0;align-content: center;justify-content: center;align-items: center;" class="p-50 text-center"><i class="fa fa-image" style="font-size: 7rem;color: #ffff;"></i></div>';
+
+        if(!IS_NULL($File)){ 
+            $render = viewFile($File);
+            $render_html ="";
+            $render_html .= '<div class="card-img-top app-file-list app-render-item" data-'.(property_exists($File, 'idfile') ? 'file': 'folder').'-id="'.(property_exists($File, 'idfile') ? $File->idfile: $File->idfolder).'" style="position: relative;">';
+            $render_html .= '<div class="app-file-icon'.($render->target === 'image'?' overflow-hidden':'').'"'.($render->target === 'image'?' style="height: 160px;max-height: 160px;object-fit: cover;background: url('.site_url('file/'.(property_exists($File, 'slug')? $File->slug: '')).');background-size: cover;background-position: center;background-repeat: no-repeat;"':' style="height: 297px;display: flex;align-content: center;justify-content: center;align-items: center;"').'>';
+            if($render->target === 'icon') {
+                $render_html .= '<i class="'.$render->class.'"></i>';
+            }
+            if($render->target === 'image') {
+                $render_html .= '<i class="fa fa-3x fa-image" style="opacity: 0;"></i>';
+            }
+            $render_html .= '</div>';
+            $render_html .= '</div>';
+
+            $media_out = $render_html;
+        }
+        $outBtn = '<div class="society_btn"><a class="btn btn-primary" style="color: #fff !important" data-id="'.$ID.'"><i class="mr-1" data-feather="plus" style="color: #fff"></i>'._('Agregar').'</a></div>';
+        return '<div id="society-'.$ID.'" style="position: relative;" class="col-xl-3 col-lg-4 col-md-6 col-sm-12 item-society"><div class="card cursor-pointer">'.$outBtn.$media_out.'<div class="card-body" style="padding: 15px 20px;"><h6 class="card-title text-primary mb-1">'.((property_exists($item, "idaccount") && property_exists($item, "name") && property_exists($item, "surname"))? $item->name." ".$item->surname: $item->title).'</h6><p class="card-text"> <small class="text-muted">'.((property_exists($item, "idaccount") && property_exists($item, "username"))  ?  $item->username: agoDate($item->updated_at)).'</small></p></div></div></div>';
+    }
+}
+
+if(!function_exists('list_society')){
+    function list_society($idsocietys, $idcolumnmain, $search, $option, $s = "", $o = ""){
+
+        $SocietyModel = new \App\Models\SocietyModel();
+
+        $Lists = [];
+        $OutHTML = "";
+        $search_data = explode("||", $search);
+        $option_data = explode("||", $option);
+        $dynamics = explode(":", $search_data[0]);
+
+        $lists_metas = $SocietyModel->getMeta($idsocietys, $idcolumnmain);
+        $SocietyData = $SocietyModel->Exists($idsocietys);
+        
+
+        try {
+            //code...
+            $ModelLoad = "\App\Models\\".$dynamics[0];
+            $Model = new $ModelLoad();
+
+            $_FILTERS = [];
+            foreach (explode('&', $dynamics[1]) as $filter) {
+                if(count(explode('=', $filter))>1){
+                    $where = explode('=', $filter);
+                    $column=$where[0];
+                    $value=$where[1];
+
+                    if(count(explode("*", $column))===1){
+                        $Model->where($column, $value);
+                    }else{
+                        $_FILTERS[explode("*", $column)[1]] = $value;
+                    }
+                }
+            }
+
+            if(isset($option_data[1]) && $o !== 'Seleccione' && $o !== ''){
+                if(count(explode("*", $option_data[1]))>1){
+                    $_FILTERS[explode("*", $option_data[1])[1]] = $o;
+                }
+            }
+
+            if(isset($search_data[1]) && strlen($s)>0){
+                foreach (explode(",", $search_data[1]) as $index => $in) {
+                    if($index===0){
+                        $Model->like($in, $s);
+                    }else{
+                        //$Model->orLike($in, $s);
+                    }
+                }
+            }
+            
+            $rows = $Model->findAll();
+            
+            foreach ($rows as $row) {
+                $Allowed = true;
+
+                $Metas = [];
+                $ID = $row[$Model->primaryKey()];
+
+                if($dynamics[0] === 'TermModel' || $dynamics[0] === 'EntityModel'){
+                    $Metas = $Model->getMeta($ID);
+                }
+
+                if(count($_FILTERS)>0 && count($Metas)>0){
+                    $Allowed = FilterUniq($Metas, $_FILTERS);
+                }
+
+                foreach ($lists_metas as $list) {
+                    if(isset($row[$Model->primaryKey()]) && isset($row[$SocietyData['selectedend']])){
+                        if($row[$SocietyData['selectedend']]."" === $list['idcolumnend'].""){
+                            $Allowed = false;
+                        }
+                    }
+                }
+                
+                if($Allowed){
+                    $row["metas"] = $Metas;
+                    $Lists[] = $row;
+                    $OutHTML .= society_card((Object) $row);
+                }
+            }          
+            
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
+
+        return (Object) array(
+            'lists' => $Lists,
+            'out'=> $OutHTML
+        );
+    }
+}
+
+if(!function_exists('society_card_view')){
+    function society_card_view($item){
+
+        $File = NULL;
+        $ID = 0;
+
+
+        if(property_exists($item, "idtaxonomy")){
+            $ModelTaxonomy = new \App\Models\TaxonomyModel();
+            $Fields = $ModelTaxonomy->getFieldsExtras($item->idtaxonomy);
+            foreach ($Fields as $field) {
+                if(isset($item->metas[$field['name']])){
+                    if($field['typefield'] === "file"){
+                        $File = (new \App\Models\FileModel())->Exists($item->metas[$field['name']]);
+                        if(!IS_NULL($File)){
+                            $File = (Object) $File;
+                        }
+                    }
+                }
+            }
+            
+            if(property_exists($item, "identity")){
+                $ID = $item->identity;
+            }else{
+                $ID = $item->idterm;
+            }
+        }else{
+            if(property_exists($item, "idaccount")){
+                $ID = $item->idaccount;
+            }
+        }
+
+        
+        ob_start();
+
+        $media_out = '<div style="height: 297px;display: flex;background: #2db2ad;border-radius: 8px 8px 0 0;align-content: center;justify-content: center;align-items: center;" class="p-50 text-center"><i class="fa fa-image" style="font-size: 7rem;color: #ffff;"></i></div>';
+
+        if(!IS_NULL($File)){ 
+            $render = viewFile($File);
+            $render_html ="";
+            $render_html .= '<div class="card-img-top app-file-list app-render-item" data-'.(property_exists($File, 'idfile') ? 'file': 'folder').'-id="'.(property_exists($File, 'idfile') ? $File->idfile: $File->idfolder).'" style="position: relative;">';
+            $render_html .= '<div class="app-file-icon'.($render->target === 'image'?' overflow-hidden':'').'"'.($render->target === 'image'?' style="height: 297px;max-height: 297px;object-fit: cover;background: url('.site_url('file/'.(property_exists($File, 'slug')? $File->slug: '')).');background-size: cover;background-position: center;background-repeat: no-repeat;"':' style="height: 297px;display: flex;align-content: center;justify-content: center;align-items: center;"').'>';
+            if($render->target === 'icon') {
+                $render_html .= '<i class="'.$render->class.'"></i>';
+            }
+            if($render->target === 'image') {
+                $render_html .= '<i class="fa fa-3x fa-image" style="opacity: 0;"></i>';
+            }
+            $render_html .= '</div>';
+            $render_html .= '</div>';
+
+            $media_out = $render_html;
+        }
+
+        //$outBtn = '<div class="society_btn"><a class="btn btn-primary" style="color: #fff !important" data-id="'.$ID.'"><i class="mr-1" data-feather="plus" style="color: #fff"></i>'._('Agregar').'</a></div>';
+        return '<div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 col-cleans"><div class="card cursor-pointer">'.$media_out.'<div class="card-body"><h6 class="card-title text-primary mb-2">'.((property_exists($item, "idaccount") && property_exists($item, "name") && property_exists($item, "surname"))? $item->name." ".$item->surname: $item->title).'</h6><p class="card-text"> <small class="text-muted">'.((property_exists($item, "idaccount") && property_exists($item, "username")) ?  $item->username: agoDate($item->updated_at)).'</small></p></div></div></div>';
     }
 }

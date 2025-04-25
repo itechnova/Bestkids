@@ -52,7 +52,7 @@
             </li>
             <!-- end::header minimize/maximize -->
 
-            <!-- begin::header app list -->
+            <!-- begin::header app list --
             <li class="nav-item dropdown">
                 <a href="#" class="nav-link" title="Apps" data-toggle="dropdown">
                     <i data-feather="grid"></i>
@@ -98,9 +98,9 @@
                     </div>
                 </div>
             </li>
-            <!-- end::header app list -->
+            <-- end::header app list -->
 
-            <!-- begin::header messages dropdown -->
+            <!-- begin::header messages dropdown --
             <li class="nav-item dropdown">
                 <a href="#" class="nav-link nav-link-notify" title="Messages" data-toggle="dropdown">
                     <i data-feather="message-circle"></i>
@@ -234,7 +234,7 @@
                     </div>
                 </div>
             </li>
-            <!-- end::header messages dropdown -->
+            <-- end::header messages dropdown -->
 
             <!-- begin::header notification dropdown -->
             <li class="nav-item dropdown">

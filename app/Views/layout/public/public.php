@@ -33,7 +33,7 @@
 <!-- end::global scripts -->
 
 <!-- begin::custom scripts -->
-<script src="<?=base_url('public/assets/js/app.min.js');?>"></script>
+<script src="<?=base_url('public/assets/js/app.js');?>"></script>
 <!-- end::custom scripts -->
 
 <!-- Javascript -->

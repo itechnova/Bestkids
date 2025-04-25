@@ -17,6 +17,8 @@ $routes->get('/'.$ROUTE_DASHBOARD, 'Taxonomy::index');
 $routes->get('/login', 'Accounts::login');
 $routes->post('/login', 'Accounts::login');
 
+$routes->get('/logout', 'Accounts::logout');
+
 $routes->get('/lost', 'Accounts::lost');
 $routes->get('/register', 'Accounts::register');
 
@@ -122,6 +124,23 @@ $routes->get('/'.$ROUTE_DASHBOARD.'/view/trash/(:alphanum)', 'Views::trash/$1');
 
 $routes->post('/'.$ROUTE_DASHBOARD.'/view/saved', 'Views::saved');
 
+/* SOCIETYS */
+$routes->get('/'.$ROUTE_DASHBOARD.'/societys', 'Societys::index');
+$routes->get('/'.$ROUTE_DASHBOARD.'/society/new', 'Societys::new');
+$routes->get('/'.$ROUTE_DASHBOARD.'/society/view/(:alphanum)', 'Societys::details/$1');
+//$routes->get('/'.$ROUTE_DASHBOARD.'/society/(:segment)', 'Societys::detail/$1');
+
+$routes->get('/'.$ROUTE_DASHBOARD.'/society/edit/(:alphanum)', 'Societys::edit/$1');
+$routes->get('/'.$ROUTE_DASHBOARD.'/society/trash/(:alphanum)', 'Societys::trash/$1');
+
+$routes->get('/'.$ROUTE_DASHBOARD.'/society/(:segment)/(:segment)', 'Societys::detail/$1/$2');
+
+$routes->post('/'.$ROUTE_DASHBOARD.'/society/saved', 'Societys::saved');
+$routes->post('/'.$ROUTE_DASHBOARD.'/society/data', 'Societys::data');
+$routes->post('/'.$ROUTE_DASHBOARD.'/society/checked', 'Societys::checked');
+$routes->post('/'.$ROUTE_DASHBOARD.'/society/lists', 'Societys::lists');
+
+
 /* TABVIEWS */
 $routes->get('/'.$ROUTE_DASHBOARD.'/tabviews/(:alphanum)', 'Tabviews::index/$1');
 $routes->get('/'.$ROUTE_DASHBOARD.'/tabview/new/(:alphanum)', 'Tabviews::new/$1');
@@ -130,6 +149,14 @@ $routes->get('/'.$ROUTE_DASHBOARD.'/tabview/edit/(:alphanum)', 'Tabviews::edit/$
 $routes->get('/'.$ROUTE_DASHBOARD.'/tabview/trash/(:alphanum)', 'Tabviews::trash/$1');
 
 $routes->post('/'.$ROUTE_DASHBOARD.'/tabview/saved', 'Tabviews::saved');
+
+
+/* APIREST */
+$routes->post('api/v3/login', 'AccountsAr::login');
+$routes->get('api/v3/me', 'AccountsAr::me');
+$routes->get('api/file/(:segment)', 'Filemanager::viewmedia/$1');
+$routes->post('api/v3/lesson', 'AccountsAr::lesson');
+
 
 //ahora hay que crear los fields de taxonomias con la estructura de menu
 //adicional hay que crear terms y entitys sus respectivas tablas metas

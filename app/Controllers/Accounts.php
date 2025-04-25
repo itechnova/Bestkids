@@ -298,9 +298,6 @@ class Accounts extends BaseController
     }
 
     public function login(){
-
-        
-
         // Verificar si el usuario ya está autenticado
         if ((session()->get('isLoggedIn'))) {
             return redirect()->to('/dashboard');
@@ -362,5 +359,16 @@ class Accounts extends BaseController
         }
 
         return $this->View('auth/login');
+    }
+
+    public function logout() {
+        if(!(session()->get('isLoggedIn'))){
+            return redirect()->to('login')->with('warning', 'You are not logged in!');
+        }
+
+        $session = session();
+        // Destruir todos los datos de sesión
+        $session->destroy();
+        return redirect()->to('login')->with('warning', 'You are logged out!');
     }
 }
